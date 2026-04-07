@@ -247,8 +247,10 @@ class DemoCatalogSeeder extends Seeder
             $product = Product::query()->updateOrCreate(
                 ['kode_produk' => $payload['sku']],
                 [
+                    'title' => $payload['title'],
                     'nama_produk' => $payload['title'],
                     'description' => $payload['description'],
+                    'price' => $payload['price'],
                     'harga' => $payload['price'],
                     'sku' => $payload['sku'],
                     'oem_number' => $payload['oem_number'],
