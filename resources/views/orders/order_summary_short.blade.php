@@ -20,18 +20,15 @@
   <tr><td>Subtotal: {{ rupiah_catalog($order->displaySubtotal()) }}</td></tr>
   <tr><td>Pajak: {{ rupiah_catalog($order->displayTaxTotal()) }}</td></tr>
   <tr><td>Total barang: {{ rupiah_catalog($order->displayItemsTotal()) }}</td></tr>
-  <tr><td>Biaya kirim: {{ rupiah_catalog($order->shipping_total_price) }}</td></tr>
-  <tr><td>Total order: {{ rupiah_catalog($order->order_total) }}</td></tr>
+  <tr><td>Total pembayaran: {{ rupiah_catalog($order->order_total) }}</td></tr>
   <tr><td>Metode Pembayaran: {{ $order->payment_method_label }}</td></tr>
 </table>
 @if ($order->shippingAddress)
   @php
-    $shippingAddressName = trim(collect([
-      $order->shippingAddress->display_label,
-      $order->shippingAddress->recipient_name,
-    ])->filter()->implode(' - '));
+    $addressText = trim((string) $order->shippingAddress->address);
+    $recipientName = trim((string) $order->shippingAddress->recipient_name);
   @endphp
   <p>
-    <b>Alamat :</b> {{ $order->shippingAddress->address }}
+    <b>Alamat :</b> {{ $addressText }}@if ($recipientName !== '') (Atas Nama {{ $recipientName }})@endif
   </p>
 @endif

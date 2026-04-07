@@ -56,8 +56,18 @@ class Order extends Model
                 $itemsTotal = (float) $order->cart->total;
             }
 
-            $order->order_total = round((float) $order->shipping_total_price + (float) ($itemsTotal ?? 0), 2);
-            $order->total_bayar = $order->order_total;
+            $order->shipping_total_price = 0;
+
+            $resolvedTotal = round((float) ($itemsTotal ?? 0), 2);
+
+            if ($order->isDirty('total_bayar') && $order->total_bayar !== null) {
+                $resolvedTotal = round((float) $order->total_bayar, 2);
+            } elseif ($order->isDirty('order_total') && $order->order_total !== null) {
+                $resolvedTotal = round((float) $order->order_total, 2);
+            }
+
+            $order->order_total = $resolvedTotal;
+            $order->total_bayar = $resolvedTotal;
             $order->tanggal_transaksi = $order->tanggal_transaksi ?: $order->created_at ?: now();
 
             if (filled($order->id_pembelian)) {
@@ -171,6 +181,11 @@ class Order extends Model
         return $this->presentedItems()->count();
     }
 
+    public function getDisplayItemCountAttribute(): int
+    {
+        return $this->displayItemCount();
+    }
+
     public function displaySubtotal(): float
     {
         return (float) ($this->items_subtotal ?? $this->cart?->subtotal ?? 0);
@@ -184,6 +199,31 @@ class Order extends Model
     public function displayItemsTotal(): float
     {
         return (float) ($this->items_total ?? $this->cart?->total ?? 0);
+    }
+
+    public function displayItemSummaries(): array
+    {
+        return $this->presentedItems()
+            ->map(function ($item) {
+                $title = $item->product_title
+                    ?? $item->item?->product?->title
+                    ?? 'Produk';
+
+                $quantity = (int) ($item->quantity ?? $item->pivot?->quantity ?? 0);
+
+                return trim($title) !== ''
+                    ? $title . ($quantity > 0 ? ' x' . $quantity : '')
+                    : null;
+            })
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    public function getDisplayItemSummariesAttribute(): array
+    {
+        return $this->displayItemSummaries();
     }
 
     public function __toString(): string

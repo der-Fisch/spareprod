@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\AccountProfile;
 use App\Models\User;
+use App\Models\UserCheckout;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -80,6 +81,10 @@ class AuthController extends Controller
         ]);
 
         AccountProfile::query()->firstOrCreate(['user_id' => $user->id]);
+        UserCheckout::query()->firstOrCreate(
+            ['email' => $user->email],
+            ['user_id' => $user->id]
+        );
 
         Auth::login($user);
         $request->session()->regenerate();

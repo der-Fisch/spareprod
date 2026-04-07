@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\UserCheckout;
 use Database\Seeders\DemoCatalogSeeder;
 use Database\Seeders\DemoStoreSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -67,5 +68,24 @@ class MinimumErdSchemaTest extends TestCase
         $this->assertGreaterThan(0, (int) $order->jumlah);
         $this->assertSame((string) $order->order_total, (string) $order->total_bayar);
         $this->assertNotNull($order->tanggal_transaksi);
+    }
+
+    public function test_register_page_persists_new_user_with_role_customer(): void
+    {
+        $response = $this->post('/register', [
+            'username' => 'user',
+            'email' => 'user@user.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'next' => '/products',
+        ]);
+
+        $response->assertRedirect('/products');
+
+        $user = User::query()->where('username', 'user')->firstOrFail();
+
+        $this->assertSame('customer', $user->role);
+        $this->assertFalse($user->is_staff);
+        $this->assertNotNull(UserCheckout::query()->where('email', 'user@user.com')->first());
     }
 }

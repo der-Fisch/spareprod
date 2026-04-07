@@ -30,36 +30,77 @@
   </section>
 
   <section class="backoffice-dashboard-grid">
-    <div class="backoffice-panel">
-      <div class="panel-heading-inline">
-        <div>
-          <span class="eyebrow">Recent Activity</span>
-          <h2>Aktivitas terbaru</h2>
+    <div class="backoffice-dashboard-main">
+      <div class="backoffice-panel">
+        <div class="panel-heading-inline">
+          <div>
+            <span class="eyebrow">Catatan Uang Masuk</span>
+            <h2>{{ rupiah_catalog($recorded_revenue_total) }} Tercatat</h2>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table backoffice-table">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Pembayaran</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Masuk Pada</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse ($revenue_rows as $row)
+                <tr>
+                  <td>{{ $row['order_id'] }}</td>
+                  <td>{{ $row['customer'] }}</td>
+                  <td>{{ $row['payment'] }}</td>
+                  <td><span class="table-chip">{{ $row['status'] }}</span></td>
+                  <td>{{ rupiah_catalog($row['total']) }}</td>
+                  <td>{{ optional($row['recorded_at'])->format('d/m/Y H:i') ?: '-' }}</td>
+                </tr>
+              @empty
+                <tr><td colspan="6">Belum ada catatan uang masuk.</td></tr>
+              @endforelse
+            </tbody>
+          </table>
         </div>
       </div>
-      <div class="table-responsive">
-        <table class="table backoffice-table">
-          <thead>
-            <tr>
-              <th>Type</th>
-              <th>Title</th>
-              <th>Meta</th>
-              <th>Detail</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse ($recent_rows as $row)
+
+      <div class="backoffice-panel">
+        <div class="panel-heading-inline">
+          <div>
+            <span class="eyebrow">Recent Activity</span>
+            <h2>Tracking data masuk</h2>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table backoffice-table">
+            <thead>
               <tr>
-                <td><span class="table-chip">{{ $row['type'] }}</span></td>
-                <td>{{ $row['title'] }}</td>
-                <td>{{ $row['meta'] }}</td>
-                <td>{{ $row['detail'] }}</td>
+                <th>Jenis Data</th>
+                <th>Nama / ID</th>
+                <th>Informasi</th>
+                <th>Keterangan</th>
+                <th>Masuk Pada</th>
               </tr>
-            @empty
-              <tr><td colspan="4">Belum ada aktivitas terbaru.</td></tr>
-            @endforelse
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @forelse ($recent_rows as $row)
+                <tr>
+                  <td><span class="table-chip">{{ $row['type'] }}</span></td>
+                  <td>{{ $row['title'] }}</td>
+                  <td>{{ $row['meta'] }}</td>
+                  <td>{{ $row['detail'] }}</td>
+                  <td>{{ optional($row['recorded_at'])->format('d/m/Y H:i') ?: '-' }}</td>
+                </tr>
+              @empty
+                <tr><td colspan="5">Belum ada aktivitas terbaru.</td></tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 

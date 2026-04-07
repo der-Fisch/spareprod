@@ -192,10 +192,6 @@
               <span>Estimasi Pajak</span>
               <strong>{{ rupiah_catalog($order->displayTaxTotal()) }}</strong>
             </div>
-            <div class="checkout-summary-row">
-              <span>Biaya Kirim</span>
-              <strong>{{ rupiah_catalog($order->shipping_total_price) }}</strong>
-            </div>
             <div class="checkout-summary-row checkout-summary-row-total">
               <span>Total Tagihan</span>
               <strong>{{ rupiah_catalog($order->order_total) }}</strong>

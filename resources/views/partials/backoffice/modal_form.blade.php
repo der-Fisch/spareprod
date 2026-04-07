@@ -3,7 +3,13 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-modal-close><span>&times;</span></button>
-        <h4 class="modal-title">{{ $mode === 'create' ? 'Add' : 'Edit' }} {{ $config['singular'] }}</h4>
+        <h4 class="modal-title">
+          @if ($entity === 'orders' && $mode === 'edit')
+            Update Status Order
+          @else
+            {{ $mode === 'create' ? 'Add' : 'Edit' }} {{ $config['singular'] }}
+          @endif
+        </h4>
       </div>
       <form method="POST" enctype="multipart/form-data" action="{{ $object ? route('backoffice.entity.modal.store', ['entity' => $entity, 'pk' => $object->id, 'mode' => $mode]) : route('backoffice.entity.modal.create.store', ['entity' => $entity, 'mode' => $mode]) }}" data-modal-form>
         @csrf
@@ -32,16 +38,19 @@
 
               @if ($fieldType === 'textarea')
                 <textarea id="{{ $fieldId }}" name="{{ $fieldName }}" class="form-control" placeholder="{{ $placeholder }}">{{ $value }}</textarea>
+              @elseif ($fieldType === 'static_text')
+                <div class="backoffice-static-field">
+                  <p>{{ $value }}</p>
+                </div>
               @elseif ($fieldType === 'select')
                 @php($selectedLabel = $options[$value] ?? '')
                 <div class="searchable-select" data-searchable-select data-options='@json($options)'>
                   <input type="hidden" id="{{ $fieldId }}" name="{{ $fieldName }}" value="{{ $value }}" data-searchable-select-value>
-                  <button type="button" class="searchable-select-trigger" data-searchable-select-trigger>
-                    <span data-searchable-select-label data-searchable-select-placeholder="{{ $placeholder !== '' ? $placeholder : 'Pilih ' . strtolower($field['label']) }}">{{ $selectedLabel !== '' ? $selectedLabel : ($placeholder !== '' ? $placeholder : 'Pilih ' . strtolower($field['label'])) }}</span>
+                  <div class="searchable-select-input-shell">
+                    <input type="text" class="form-control searchable-select-input" value="{{ $selectedLabel }}" placeholder="{{ $placeholder !== '' ? $placeholder : 'Pilih ' . strtolower($field['label']) }}" data-searchable-select-input autocomplete="off">
                     <i class="fa fa-angle-down"></i>
-                  </button>
+                  </div>
                   <div class="searchable-select-panel" data-searchable-select-panel>
-                    <input type="text" class="form-control searchable-select-search" placeholder="{{ $placeholder !== '' ? $placeholder : 'Cari ' . strtolower($field['label']) }}" data-searchable-select-search autocomplete="off">
                     <div class="searchable-select-options" data-searchable-select-options>
                       @foreach ($options as $optionValue => $optionLabel)
                         <button type="button" class="searchable-select-option" data-searchable-select-option data-option-label="{{ strtolower($optionLabel) }}" data-option-value="{{ $optionValue }}" data-option-text="{{ $optionLabel }}">
@@ -331,7 +340,13 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" data-modal-close>Cancel</button>
-          <button type="submit" class="btn btn-primary">{{ $mode === 'create' ? 'Save' : 'Update' }}</button>
+          <button type="submit" class="btn btn-primary">
+            @if ($entity === 'orders' && $mode === 'edit')
+              Update Status
+            @else
+              {{ $mode === 'create' ? 'Save' : 'Update' }}
+            @endif
+          </button>
         </div>
       </form>
     </div>

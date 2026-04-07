@@ -195,12 +195,14 @@ function updateCartItemCount() {
   function refreshSearchableSelect(wrapper) {
     var root = $(wrapper);
     var hidden = root.find("[data-searchable-select-value]");
-    var labelNode = root.find("[data-searchable-select-label]");
-    var placeholder = labelNode.data("searchable-select-placeholder") || "Pilih opsi";
+    var inputNode = root.find("[data-searchable-select-input]");
+    var placeholder = inputNode.attr("placeholder") || "Pilih opsi";
     var selected = root.find("[data-searchable-select-option][data-option-value='" + hidden.val() + "']");
     var label = selected.data("option-text");
 
-    labelNode.text(label || placeholder);
+    inputNode.val(label || "");
+    inputNode.attr("placeholder", placeholder);
+    root.find("[data-searchable-select-option]").show();
   }
 
   function renderImagePreview(shell, src, metaText) {
@@ -558,20 +560,24 @@ function updateCartItemCount() {
     updateCurrencyFieldFromDisplay(this);
   });
 
-  $(document).on("click", "[data-searchable-select-trigger]", function(event) {
+  $(document).on("focus click", "[data-searchable-select-input]", function(event) {
     event.preventDefault();
-    var wrapper = $(this).closest("[data-searchable-select]");
+    var input = $(this);
+    var wrapper = input.closest("[data-searchable-select]");
     $(".searchable-multiselect").removeClass("is-open");
     $(".searchable-select").not(wrapper).removeClass("is-open");
-    wrapper.toggleClass("is-open");
-    if (wrapper.hasClass("is-open")) {
-      wrapper.find("[data-searchable-select-search]").trigger("focus");
+    wrapper.addClass("is-open");
+
+    if (event.type === "click" && input.val()) {
+      input.trigger("select");
     }
   });
 
-  $(document).on("input", "[data-searchable-select-search]", function() {
+  $(document).on("input", "[data-searchable-select-input]", function() {
+    var wrapper = $(this).closest("[data-searchable-select]");
     var term = ($(this).val() || "").toLowerCase();
-    $(this).closest("[data-searchable-select]").find("[data-searchable-select-option]").each(function() {
+    wrapper.addClass("is-open");
+    wrapper.find("[data-searchable-select-option]").each(function() {
       var option = $(this);
       option.toggle((option.data("option-label") || "").indexOf(term) !== -1);
     });
@@ -583,6 +589,7 @@ function updateCartItemCount() {
 
     wrapper.find("[data-searchable-select-value]").val(option.data("option-value"));
     refreshSearchableSelect(wrapper);
+    wrapper.find("[data-searchable-select-input]").trigger("blur");
     wrapper.removeClass("is-open");
   });
 
@@ -611,6 +618,9 @@ function updateCartItemCount() {
       $(".searchable-multiselect").removeClass("is-open");
     }
     if (!$(event.target).closest("[data-searchable-select]").length) {
+      $(".searchable-select").each(function() {
+        refreshSearchableSelect(this);
+      });
       $(".searchable-select").removeClass("is-open");
     }
   });

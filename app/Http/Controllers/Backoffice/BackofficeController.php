@@ -27,35 +27,78 @@ class BackofficeController extends Controller
     {
         $this->ensureStaff($request);
 
-        $revenue = Order::query()->sum('order_total');
-        $recentRows = [];
+        $revenueRows = Order::query()
+            ->with(['user', 'accountUser', 'userPaymentMethod'])
+            ->whereIn('status', ['paid', 'shipped'])
+            ->latest('updated_at')
+            ->take(8)
+            ->get()
+            ->map(function (Order $order) {
+                return [
+                    'order_id' => $order->order_id ?: ('Order #' . $order->id),
+                    'customer' => $order->user?->email ?: $order->accountUser?->email ?: '-',
+                    'payment' => $order->payment_method_label,
+                    'status' => $order->status_label,
+                    'total' => (float) $order->order_total,
+                    'recorded_at' => $order->updated_at ?: $order->created_at,
+                ];
+            })
+            ->all();
 
-        foreach (Product::query()->with('defaultCategory')->latest('id')->take(4)->get() as $product) {
-            $recentRows[] = [
-                'type' => 'Product',
-                'title' => $product->title,
-                'meta' => $product->defaultCategory?->title ?? 'General',
-                'detail' => 'Catalog item',
-            ];
-        }
+        $recordedRevenueTotal = collect($revenueRows)->sum('total');
 
-        foreach (User::query()->latest('date_joined')->take(3)->get() as $user) {
-            $recentRows[] = [
-                'type' => 'User',
-                'title' => $user->username,
-                'meta' => $user->email,
-                'detail' => optional($user->date_joined)->format('d/m/Y'),
-            ];
-        }
-
-        foreach (Order::query()->with(['cart.items', 'orderItems'])->latest('id')->take(3)->get() as $order) {
-            $recentRows[] = [
-                'type' => 'Order',
-                'title' => $order->order_id ?: 'Draft order',
-                'meta' => $order->status_label,
-                'detail' => $order->displayItemCount() . ' item(s)',
-            ];
-        }
+        $recentRows = collect()
+            ->concat(
+                Product::query()
+                    ->with('defaultCategory')
+                    ->latest('created_at')
+                    ->take(4)
+                    ->get()
+                    ->map(function (Product $product) {
+                        return [
+                            'type' => 'Produk',
+                            'title' => $product->title,
+                            'meta' => $product->defaultCategory?->title ?? 'Tanpa kategori',
+                            'detail' => 'Data produk baru ditambahkan ke katalog.',
+                            'recorded_at' => $product->created_at,
+                        ];
+                    })
+            )
+            ->concat(
+                User::query()
+                    ->latest('date_joined')
+                    ->take(4)
+                    ->get()
+                    ->map(function (User $user) {
+                        return [
+                            'type' => 'User',
+                            'title' => $user->username,
+                            'meta' => $user->email,
+                            'detail' => 'Akun baru terdaftar di sistem.',
+                            'recorded_at' => $user->date_joined,
+                        ];
+                    })
+            )
+            ->concat(
+                Order::query()
+                    ->with(['user', 'accountUser'])
+                    ->latest('created_at')
+                    ->take(4)
+                    ->get()
+                    ->map(function (Order $order) {
+                        return [
+                            'type' => 'Order',
+                            'title' => $order->order_id ?: ('Order #' . $order->id),
+                            'meta' => $order->user?->email ?: $order->accountUser?->email ?: '-',
+                            'detail' => 'Order masuk dengan status ' . $order->status_label . '.',
+                            'recorded_at' => $order->created_at,
+                        ];
+                    })
+            )
+            ->sortByDesc(fn (array $row) => $row['recorded_at']?->getTimestamp() ?? 0)
+            ->take(10)
+            ->values()
+            ->all();
 
         return view('backoffice.dashboard', [
             'page_title' => 'Dashboard',
@@ -64,9 +107,10 @@ class BackofficeController extends Controller
                 ['label' => 'Total Categories', 'value' => Category::query()->count(), 'accent' => 'amber', 'icon' => 'fa-tags', 'note' => 'Kategori yang tersedia'],
                 ['label' => 'Total Users', 'value' => User::query()->count(), 'accent' => 'blue', 'icon' => 'fa-users', 'note' => 'Akun customer dan staff'],
                 ['label' => 'Total Orders', 'value' => Order::query()->count(), 'accent' => 'green', 'icon' => 'fa-shopping-cart', 'note' => 'Order yang tersimpan'],
-                ['label' => 'Revenue Tracked', 'value' => $revenue, 'accent' => 'purple', 'icon' => 'fa-line-chart', 'type' => 'currency', 'note' => 'Akumulasi total order'],
             ],
-            'recent_rows' => array_slice($recentRows, 0, 8),
+            'recorded_revenue_total' => $recordedRevenueTotal,
+            'revenue_rows' => $revenueRows,
+            'recent_rows' => $recentRows,
             'quick_actions' => [
                 ['label' => 'Tambah Produk', 'url' => route('backoffice.entity.modal.create', ['entity' => 'products', 'mode' => 'create']), 'kind' => 'modal'],
                 ['label' => 'Lihat Produk', 'url' => route('backoffice.entity.list', ['entity' => 'products']), 'kind' => 'link'],
@@ -333,30 +377,25 @@ class BackofficeController extends Controller
                     ['label' => 'Customer', 'key' => 'user.email'],
                     ['label' => 'Pembayaran', 'key' => 'payment_method_label'],
                     ['label' => 'Status', 'key' => 'status_label', 'type' => 'badge'],
-                    ['label' => 'Items', 'key' => 'cart.items.count', 'type' => 'count'],
+                    ['label' => 'Items', 'key' => 'display_item_count', 'type' => 'count'],
                     ['label' => 'Total', 'key' => 'order_total', 'type' => 'currency_catalog'],
                 ],
                 'fields' => [
-                    ['name' => 'payment_method', 'label' => 'Metode Pembayaran', 'type' => 'select', 'options' => ['cod' => 'COD', 'prepaid' => 'Bayar Sekarang'], 'placeholder' => 'Pilih metode pembayaran'],
                     ['name' => 'status', 'label' => 'Status', 'type' => 'select', 'options' => ['created' => 'Pending', 'paid' => 'Paid', 'shipped' => 'Delivered', 'refunded' => 'Refunded'], 'placeholder' => 'Pilih status order'],
-                    ['name' => 'shipping_total_price', 'label' => 'Biaya Kirim', 'type' => 'currency_catalog', 'placeholder' => 'Contoh: Rp12.000', 'help_text' => 'Field ini hanya untuk ongkir. Total order dihitung otomatis dari total barang + biaya kirim.'],
-                    ['name' => 'order_id', 'label' => 'Order ID', 'type' => 'text', 'placeholder' => 'Contoh: ORD-2026-0001'],
+                    ['name' => 'status_update_note', 'label' => 'Konfirmasi', 'type' => 'static_text', 'help_text' => 'Perubahan pada order dibatasi ke update status agar data transaksi tetap konsisten.'],
                 ],
                 'detail_fields' => [
                     ['label' => 'Order ID', 'key' => 'order_id'],
                     ['label' => 'Customer', 'key' => 'user.email'],
+                    ['label' => 'Produk Dibeli', 'key' => 'display_item_summaries', 'type' => 'list'],
                     ['label' => 'Metode Pembayaran', 'key' => 'payment_method_label'],
                     ['label' => 'Status', 'key' => 'status_label'],
                     ['label' => 'Alamat Pengiriman', 'key' => 'shippingAddress.address'],
-                    ['label' => 'Biaya Kirim', 'key' => 'shipping_total_price', 'type' => 'currency_catalog'],
-                    ['label' => 'Total', 'key' => 'order_total', 'type' => 'currency_catalog'],
+                    ['label' => 'Total Pembayaran', 'key' => 'total_bayar', 'type' => 'currency_catalog'],
                 ],
                 'summary' => fn (Builder $query) => ['Total Orders' => (clone $query)->count(), 'Paid' => (clone $query)->where('status', 'paid')->count()],
                 'rules' => fn (?Order $order) => [
-                    'payment_method' => ['required', 'in:cod,prepaid'],
                     'status' => ['required', 'in:created,paid,shipped,refunded'],
-                    'shipping_total_price' => ['required', 'numeric', 'min:0'],
-                    'order_id' => ['nullable', 'string', 'max:40'],
                 ],
             ],
         ];
@@ -372,7 +411,7 @@ class BackofficeController extends Controller
             'categories' => Category::query()->latest('created_at'),
             'products' => Product::query()->with(['defaultCategory', 'categories', 'compatibilities', 'specifications', 'variations', 'images'])->latest('id'),
             'users' => User::query()->latest('date_joined'),
-            'orders' => Order::query()->with(['user', 'cart.items'])->latest('id'),
+            'orders' => Order::query()->with(['user', 'cart.items', 'orderItems'])->latest('id'),
             default => abort(404),
         };
     }
@@ -450,10 +489,8 @@ class BackofficeController extends Controller
                 'is_staff' => $object->is_staff,
             ],
             'orders' => [
-                'payment_method' => $object->payment_method,
                 'status' => $object->status,
-                'shipping_total_price' => $object->shipping_total_price,
-                'order_id' => $object->order_id,
+                'status_update_note' => 'Status order akan diperbarui tanpa mengubah detail transaksi lainnya.',
             ],
             default => $object->toArray(),
         };
@@ -518,10 +555,7 @@ class BackofficeController extends Controller
 
             if ($entity === 'orders') {
                 $object->fill([
-                    'payment_method' => $data['payment_method'],
                     'status' => $data['status'],
-                    'shipping_total_price' => $data['shipping_total_price'],
-                    'order_id' => $data['order_id'] ?? null,
                 ]);
                 $object->save();
             }

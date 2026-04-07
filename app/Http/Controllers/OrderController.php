@@ -16,7 +16,7 @@ class OrderController extends Controller
         return view('orders.order_list', [
             'object_list' => $checkout
                 ? Order::query()
-                    ->with(['cart.items', 'orderItems', 'userPaymentMethod'])
+                    ->with(['cart.cartItems.item.product', 'orderItems', 'userPaymentMethod', 'shippingAddress', 'accountUser', 'user'])
                     ->where('user_checkout_id', $checkout->id)
                     ->whereNot('status', 'draft')
                     ->latest('id')
@@ -35,7 +35,7 @@ class OrderController extends Controller
             404
         );
 
-        $order->load(['cart.cartItems.item.product', 'orderItems', 'billingAddress', 'shippingAddress', 'user', 'userPaymentMethod']);
+        $order->load(['cart.cartItems.item.product', 'orderItems', 'billingAddress', 'shippingAddress', 'user', 'userPaymentMethod', 'accountUser']);
 
         return view('orders.order_detail', ['order' => $order]);
     }

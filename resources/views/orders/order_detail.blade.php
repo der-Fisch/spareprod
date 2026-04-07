@@ -24,9 +24,15 @@
       </div>
       @include('orders.order_summary_short', ['order' => $order])
       <p><b>Simpan halaman ini sebagai referensi order Anda.</b></p>
-      <p class="text-center" style="margin-top: 22px;">
+      <div class="order-detail-actions text-center" style="margin-top: 22px;">
+        <button type="button" class="btn btn-ghost" data-ui-modal-open="invoice-modal-order-detail-{{ $order->id }}">Invoice</button>
         <a href="{{ route('products.index') }}" class="btn btn-primary">Kembali Belanja</a>
-      </p>
+      </div>
     </div>
   </div>
+
+  @include('orders.partials.invoice_modal', [
+    'order' => $order,
+    'modalId' => 'invoice-modal-order-detail-' . $order->id,
+  ])
 @endsection

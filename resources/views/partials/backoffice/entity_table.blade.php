@@ -14,6 +14,7 @@
           @foreach ($entityConfig['columns'] as $column)
             @php($value = resolve_path_value($row, $column['key']))
             <td>
+              @php($displayValue = ($value === 0 || $value === '0') ? $value : ($value ?: '-'))
               @if (($column['type'] ?? null) === 'currency')
                 {{ rupiah($value) }}
               @elseif (($column['type'] ?? null) === 'currency_catalog')
@@ -27,7 +28,7 @@
               @elseif (($column['type'] ?? null) === 'date')
                 {{ optional($value)->format('d/m/Y') }}
               @else
-                {{ $value ?: '-' }}
+                {{ $displayValue }}
               @endif
             </td>
           @endforeach

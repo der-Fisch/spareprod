@@ -73,6 +73,20 @@ class StorefrontModulesTest extends TestCase
         $response->assertSee('Order Detail', false);
     }
 
+    public function test_authenticated_user_can_see_order_id_and_product_names_in_order_history(): void
+    {
+        $this->seedStore();
+        $user = User::query()->where('username', 'demo')->firstOrFail();
+        $order = Order::query()->where('user_checkout_id', UserCheckout::query()->where('user_id', $user->id)->value('id'))->firstOrFail();
+        $firstProductName = $order->cart->cartItems()->with('item.product')->firstOrFail()?->item?->product?->title;
+
+        $response = $this->actingAs($user)->get('/orders');
+
+        $response->assertOk();
+        $response->assertSee('ID: ' . $order->id, false);
+        $response->assertSee($firstProductName, false);
+    }
+
     public function test_staff_user_can_open_backoffice_dashboard(): void
     {
         $this->seedStore();
