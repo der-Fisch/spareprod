@@ -9,7 +9,7 @@
           $productTitle = $item->product_title ?? $item->item?->product?->title ?? 'Produk';
         @endphp
         <b>{{ $productTitle }}</b>
-        x{{ $item->quantity }} - {{ rupiah_catalog($item->line_item_total) }}<br>
+        x {{ $item->quantity }}Pcs : {{ rupiah_catalog($item->line_item_total) }}<br>
       @endforeach
     </td>
   </tr>

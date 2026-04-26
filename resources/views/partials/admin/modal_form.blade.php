@@ -203,13 +203,10 @@
                               <img src="{{ $previewSrc }}" alt="{{ $row['alt_text'] ?? 'Preview gambar' }}" data-image-preview @if ($previewSrc === '') style="display:none;" @endif>
                               <div class="image-preview-placeholder" data-image-placeholder @if ($previewSrc !== '') style="display:none;" @endif>Preview gambar akan muncul di sini</div>
                             </div>
-                            <small class="image-preview-meta" data-image-preview-meta>{{ $previewPath !== '' ? $previewPath : 'Belum ada gambar dipilih.' }}</small>
+                            <small class="image-preview-meta" data-image-preview-meta>{{ $previewPath !== '' ? 'Gambar tersimpan' : 'Belum ada gambar dipilih.' }}</small>
                           </div>
                           <div class="image-editor-card">
-                            <div>
-                              <span class="repeater-sub-label">Path / URL Gambar</span>
-                              <input type="text" class="form-control" name="{{ $fieldName }}[{{ $index }}][image_path]" value="{{ $previewPath }}" placeholder="theme/img/products/item.jpg" data-image-path-input>
-                            </div>
+                            <input type="hidden" name="{{ $fieldName }}[{{ $index }}][image_path]" value="{{ $previewPath }}" data-image-path-value>
                             <div>
                               <span class="repeater-sub-label">Upload Foto</span>
                               <label class="image-upload-control">
@@ -239,10 +236,7 @@
                           <small class="image-preview-meta" data-image-preview-meta>Belum ada gambar dipilih.</small>
                         </div>
                         <div class="image-editor-card">
-                          <div>
-                            <span class="repeater-sub-label">Path / URL Gambar</span>
-                            <input type="text" class="form-control" name="{{ $fieldName }}[__INDEX__][image_path]" value="" placeholder="theme/img/products/item.jpg" data-image-path-input>
-                          </div>
+                          <input type="hidden" name="{{ $fieldName }}[__INDEX__][image_path]" value="" data-image-path-value>
                           <div>
                             <span class="repeater-sub-label">Upload Foto</span>
                             <label class="image-upload-control">

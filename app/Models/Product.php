@@ -88,13 +88,15 @@ class Product extends Model
                 $product->kategori_id = $product->default_category_id;
             }
 
-            if ($product->isDirty('brand_name') || (! filled($product->brand_id) && filled($product->brand_name))) {
+            if (filled($product->brand_name) && ($product->isDirty('brand_name') || ! filled($product->brand_id))) {
                 $brandId = Str::slug($product->brand_name, '_') ?: 'brand';
                 Brand::query()->updateOrCreate(
                     ['id' => $brandId],
                     ['nama_brand' => $product->brand_name]
                 );
                 $product->brand_id = $brandId;
+            } elseif ($product->isDirty('brand_name') && ! filled($product->brand_name)) {
+                $product->brand_id = null;
             } elseif ($product->isDirty('brand_id') || (filled($product->brand_id) && ! filled($product->brand_name))) {
                 $product->brand_name = Brand::query()->whereKey($product->brand_id)->value('nama_brand');
             }
@@ -273,7 +275,7 @@ class Product extends Model
             return 'Stok Habis';
         }
 
-        return sprintf('%s (%d unit)', $this->stock_badge_label, $this->total_inventory);
+        return sprintf('%d unit', $this->total_inventory);
     }
 
     public function getRatingValueAttribute(): string

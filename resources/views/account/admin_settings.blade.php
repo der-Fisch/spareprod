@@ -1,22 +1,12 @@
 @extends('admin.base')
 
 @section('title', 'Admin Settings | Spare Soko')
+@section('body_class', 'admin-settings-page')
 
 @section('content')
-  <section class="admin-hero">
-    <div>
-      <span class="eyebrow">Admin Settings</span>
-      <h1>Kelola identitas login admin.</h1>
-      <p>Halaman ini disederhanakan untuk kebutuhan operasional admin: username, email, WhatsApp, dan password.</p>
-    </div>
-    <div class="admin-hero-icon">
-      <i class="fa fa-user-secret"></i>
-    </div>
-  </section>
-
-  <section class="admin-dashboard-grid">
-    <div class="admin-dashboard-main">
-      <div class="admin-panel">
+  <section class="admin-settings-shell">
+    <div class="admin-settings-grid admin-settings-grid-dual">
+      <div class="admin-panel admin-settings-panel">
         <div class="panel-heading-inline">
           <div>
             <span class="eyebrow">Profil Admin</span>
@@ -52,7 +42,7 @@
         </form>
       </div>
 
-      <div class="admin-panel">
+      <div class="admin-panel admin-settings-panel">
         <div class="panel-heading-inline">
           <div>
             <span class="eyebrow">Keamanan</span>
@@ -85,24 +75,6 @@
             <button type="submit" class="btn btn-primary">Update Password</button>
           </div>
         </form>
-      </div>
-    </div>
-
-    <div class="admin-panel quick-actions-panel">
-      <span class="eyebrow">Ringkasan</span>
-      <h2>Akun Admin</h2>
-      <p class="panel-helper">Data yang tampil di sini hanya yang relevan untuk operasional admin.</p>
-      <div class="summary-mini-card">
-        <span>Username</span>
-        <strong>{{ auth()->user()->username }}</strong>
-      </div>
-      <div class="summary-mini-card">
-        <span>Email</span>
-        <strong>{{ auth()->user()->email }}</strong>
-      </div>
-      <div class="summary-mini-card">
-        <span>WhatsApp</span>
-        <strong>{{ $profile->whatsapp_number ?: 'Belum diisi' }}</strong>
       </div>
     </div>
   </section>

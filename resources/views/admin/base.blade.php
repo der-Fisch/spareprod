@@ -14,7 +14,7 @@
     <link href="{{ asset('theme/css/navbar-static-top.css') }}" rel="stylesheet">
     <link href="{{ asset('theme/css/custom.css') }}" rel="stylesheet">
   </head>
-  <body class="admin-body">
+  <body class="admin-body @yield('body_class')">
     <div class="admin-shell">
       @include('partials.admin.sidebar')
       <button type="button" class="admin-sidebar-backdrop" data-admin-sidebar-close aria-label="Close sidebar"></button>

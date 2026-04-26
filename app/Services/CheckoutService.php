@@ -125,7 +125,11 @@ class CheckoutService
                 $remainingInventory = (int) ($product->stok ?? 0) - (int) $cartItem->quantity;
 
                 if ($remainingInventory < 0) {
-                    throw new \RuntimeException('Stok untuk produk "' . $product->title . '" tidak mencukupi.');
+                    if ((int) ($product->stok ?? 0) <= 0) {
+                        throw new \RuntimeException('Stok untuk produk "' . $product->title . '" sedang habis. Silakan tunggu admin/staff melakukan restock.');
+                    }
+
+                    throw new \RuntimeException('Jumlah untuk produk "' . $product->title . '" melebihi stok tersedia. Saat ini hanya tersedia ' . (int) ($product->stok ?? 0) . ' unit. Silakan kurangi jumlah atau tunggu admin/staff melakukan restock.');
                 }
 
                 $product->stok = $remainingInventory;

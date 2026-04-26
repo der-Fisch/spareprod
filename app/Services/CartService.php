@@ -184,6 +184,31 @@ class CartService
         return $cart->selectedCartItems()->with('item.product.images')->get();
     }
 
+    public function itemsWithStockIssues(Collection $cartItems): Collection
+    {
+        return $cartItems
+            ->loadMissing('item.product.images')
+            ->filter(fn (CartItem $item) => $item->has_stock_issue)
+            ->values();
+    }
+
+    public function stockIssueSummary(Collection $cartItems): ?string
+    {
+        $issues = $this->itemsWithStockIssues($cartItems);
+
+        if ($issues->isEmpty()) {
+            return null;
+        }
+
+        $primaryMessage = $issues->first()->stock_issue_message;
+
+        if ($issues->count() === 1) {
+            return $primaryMessage;
+        }
+
+        return $primaryMessage . ' Periksa juga item lain di keranjang Anda yang mungkin perlu menunggu restock.';
+    }
+
     protected function buildMutationResponse(
         Request $request,
         Cart $cart,

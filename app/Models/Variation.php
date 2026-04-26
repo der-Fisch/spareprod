@@ -124,7 +124,7 @@ class Variation extends Model
             return 'Stok Habis';
         }
 
-        return sprintf('%s (%d unit)', $this->stock_badge_label, (int) ($this->inventory ?? 0));
+        return sprintf('%d unit', (int) ($this->inventory ?? 0));
     }
 
     protected function formatCatalogRupiah(float|string $value): string

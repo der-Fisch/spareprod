@@ -44,9 +44,11 @@ class CatalogPagesTest extends TestCase
 
         $response->assertOk();
         $response->assertSee($product->title, false);
-        $response->assertSee('Nomor Part / SKU', false);
+        $response->assertSee('SKU Produk', false);
         $response->assertSee('Spesifikasi Teknis', false);
         $response->assertDontSee('Rating', false);
+        $response->assertDontSee('OEM', false);
+        $response->assertDontSee('Brand Type', false);
         $response->assertDontSee('ulasan', false);
         $response->assertSee('Stok Produk', false);
         $response->assertSee('Gambar berikutnya', false);

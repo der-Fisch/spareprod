@@ -6,8 +6,8 @@
   <div class="row product-detail-layout">
     <div class="col-md-7">
       @php($galleryImages = $product->images->isNotEmpty() ? $product->images : collect([(object) ['image_url' => $product->image_url, 'alt_text' => $product->title]]))
-      @php($hasSkuData = filled($product->sku) || filled($product->oem_number))
-      @php($hasBrandData = filled($product->brand_name) || filled($product->brand_type))
+      @php($hasSkuData = filled($product->sku))
+      @php($hasBrandData = filled($product->brand_name))
       @php($hasTechnicalSpecs = !empty($product->technical_specs))
       @php($hasWarranty = filled($product->warranty_label))
       <div class="product-detail-media">
@@ -39,7 +39,7 @@
             <div class="product-overview-grid">
               @if ($hasSkuData)
                 <section class="product-overview-panel">
-                  <span class="product-section-label">Nomor Part / SKU</span>
+                  <span class="product-section-label">SKU Produk</span>
                   <div class="product-copy-list">
                     @if (filled($product->sku))
                       <div class="product-copy-item">
@@ -50,33 +50,18 @@
                         <button type="button" class="product-copy-button" data-copy-text="{{ $product->sku }}">Salin</button>
                       </div>
                     @endif
-                    @if (filled($product->oem_number))
-                      <div class="product-copy-item">
-                        <div>
-                          <span class="product-micro-label">OEM</span>
-                          <strong>{{ $product->oem_number }}</strong>
-                        </div>
-                        <button type="button" class="product-copy-button" data-copy-text="{{ $product->oem_number }}">Salin</button>
-                      </div>
-                    @endif
                   </div>
                 </section>
               @endif
 
               @if ($hasBrandData)
                 <section class="product-overview-panel">
-                  <span class="product-section-label">Merek & Tipe</span>
+                  <span class="product-section-label">Merek & Kategori</span>
                   <div class="product-micro-grid">
                     @if (filled($product->brand_name))
                       <div class="product-micro-item">
                         <span class="product-micro-label">Merek</span>
                         <strong>{{ $product->brand_name }}</strong>
-                      </div>
-                    @endif
-                    @if (filled($product->brand_type))
-                      <div class="product-micro-item">
-                        <span class="product-micro-label">Tipe</span>
-                        <strong><span class="product-chip product-chip-type">{{ $product->brand_type }}</span></strong>
                       </div>
                     @endif
                     <div class="product-micro-item">
@@ -167,7 +152,7 @@
 
         <div class="purchase-note">
           <i class="fa fa-shield"></i>
-          Pastikan SKU, OEM, dan jumlah produk sudah sesuai sebelum checkout.
+          Pastikan SKU dan jumlah produk sudah sesuai sebelum checkout.
         </div>
       </div>
 

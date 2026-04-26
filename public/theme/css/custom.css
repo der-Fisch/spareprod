@@ -1595,6 +1595,17 @@ textarea.form-control,
   font-weight: 700;
 }
 
+.cart-stock-warning {
+  margin-top: 12px !important;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 238, 238, 0.95);
+  border: 1px solid rgba(226, 111, 111, 0.32);
+  color: #b13f3f !important;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .cart-item-side {
   display: grid;
   gap: 12px;
@@ -1948,6 +1959,64 @@ textarea.form-control,
   gap: 14px;
   align-content: start;
   min-width: 0;
+}
+
+.admin-settings-shell {
+  height: calc(100vh - 128px);
+  max-height: calc(100vh - 128px);
+  overflow: hidden;
+}
+
+.admin-body.admin-settings-page,
+.admin-body.admin-settings-page .admin-shell,
+.admin-body.admin-settings-page .admin-main {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+.admin-body.admin-settings-page .admin-content {
+  height: calc(100vh - 76px);
+  max-height: calc(100vh - 76px);
+  overflow: hidden;
+}
+
+.admin-settings-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.28fr) minmax(280px, 360px);
+  gap: 20px;
+  align-items: start;
+  width: 100%;
+}
+
+.admin-settings-grid-dual {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  height: 100%;
+  align-items: stretch;
+}
+
+.admin-settings-main {
+  gap: 20px;
+  max-width: 900px;
+}
+
+.admin-settings-panel {
+  padding: 22px 24px;
+  border-radius: 24px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.admin-settings-summary-panel {
+  width: 100%;
+  max-width: 360px;
+  padding: 22px;
+  border-radius: 24px;
+  justify-self: end;
+}
+
+.admin-settings-panel .panel-heading-inline {
+  margin-bottom: 14px;
 }
 
 .admin-grid > *,
@@ -3327,6 +3396,16 @@ textarea.form-control,
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .admin-settings-shell {
+    height: calc(100vh - 156px);
+    max-height: calc(100vh - 156px);
+  }
+
+  .admin-body.admin-settings-page .admin-content {
+    height: calc(100vh - 86px);
+    max-height: calc(100vh - 86px);
+  }
+
   .panel-toolbar,
   .section-heading,
   .admin-entity-header {
@@ -3383,6 +3462,32 @@ textarea.form-control,
   .vision-card {
     padding: 22px;
     border-radius: 22px;
+  }
+
+  .admin-settings-panel,
+  .admin-settings-summary-panel {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .admin-settings-shell {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .admin-body.admin-settings-page,
+  .admin-body.admin-settings-page .admin-shell,
+  .admin-body.admin-settings-page .admin-main,
+  .admin-body.admin-settings-page .admin-content {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .admin-settings-grid-dual {
+    grid-template-columns: 1fr;
+    height: auto;
   }
 
   .landing-copy h1,

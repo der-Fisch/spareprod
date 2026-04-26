@@ -62,7 +62,8 @@ class StorefrontModulesTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Admin Settings', false);
-        $response->assertSee('Kelola identitas login admin.', false);
+        $response->assertSee('Profil Admin', false);
+        $response->assertSee('Ganti password admin', false);
         $response->assertDontSee('Daftar Alamat', false);
         $response->assertDontSee('Pembayaran', false);
     }
@@ -160,9 +161,7 @@ class StorefrontModulesTest extends TestCase
                 'title' => 'Battery Terminal Clamp',
                 'description' => 'Clamp baterai revisi admin.',
                 'sku' => 'BTC-NEW-777',
-                'oem_number' => 'OEM-777',
                 'brand_name' => 'Bosch Update',
-                'brand_type' => 'Aftermarket',
                 'warranty_label' => 'Garansi Admin 14 Hari',
                 'price' => '14.50',
                 'stok' => '9',
@@ -191,7 +190,6 @@ class StorefrontModulesTest extends TestCase
 
         $this->assertSame('BTC-NEW-777', $product->sku);
         $this->assertSame('Bosch Update', $product->brand_name);
-        $this->assertSame('Aftermarket', $product->brand_type);
         $this->assertSame('Garansi Admin 14 Hari', $product->warranty_label);
         $this->assertSame(9, $product->stok);
         $this->assertDatabaseHas('product_compatibilities', [
@@ -219,7 +217,32 @@ class StorefrontModulesTest extends TestCase
         $storefrontResponse->assertSee('Bosch Update', false);
         $storefrontResponse->assertSee('Garansi Admin 14 Hari', false);
         $storefrontResponse->assertSee('Clamp baterai revisi admin.', false);
-        $storefrontResponse->assertSee('Stok Menipis (9 unit)', false);
+        $storefrontResponse->assertSee('9 unit', false);
+    }
+
+    public function test_admin_can_create_product_with_minimal_required_fields(): void
+    {
+        $this->seedStore();
+        $admin = User::query()->where('username', 'admin')->firstOrFail();
+        $category = Category::query()->where('slug', 'brakes')->firstOrFail();
+
+        $response = $this->actingAs($admin)->post('/admin/products/create', [
+            'title' => 'Minimal Product',
+            'price' => '12.50',
+            'stok' => '30',
+            'category_id' => (string) $category->id,
+        ], [
+            'X-Requested-With' => 'XMLHttpRequest',
+        ]);
+
+        $response->assertOk();
+        $response->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('products', [
+            'title' => 'Minimal Product',
+            'default_category_id' => $category->id,
+            'stok' => 30,
+        ]);
     }
 
     public function test_admin_can_create_edit_and_delete_category_via_modal_endpoints(): void
@@ -351,5 +374,31 @@ class StorefrontModulesTest extends TestCase
         $this->assertSame('cod', $order->fresh()->payment_method);
         $this->assertSame('created', $order->fresh()->status);
         $this->assertSame($before - $expectedReduction, $product->fresh()->stok);
+    }
+
+    public function test_checkout_redirects_back_to_cart_when_selected_item_is_out_of_stock(): void
+    {
+        $this->seedStore();
+        $customer = User::query()->where('username', 'raka.saputra')->firstOrFail();
+        $order = Order::query()->with('cart.cartItems.item.product')->firstOrFail();
+
+        $order->cart->cartItems()->update(['is_selected' => true]);
+
+        $outOfStockProduct = $order->cart->cartItems->firstOrFail()->item->product;
+        $outOfStockProduct->stok = 0;
+        $outOfStockProduct->save();
+
+        $response = $this->actingAs($customer)
+            ->withSession([
+                'cart_id' => $order->cart_id,
+            ])
+            ->get('/checkout');
+
+        $response->assertRedirect('/cart');
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString(
+            'Silakan tunggu admin/staff melakukan restock.',
+            session('error')
+        );
     }
 }

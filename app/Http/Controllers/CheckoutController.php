@@ -35,6 +35,10 @@ class CheckoutController extends Controller
             return redirect()->route('cart')->with('info', 'Pilih minimal satu produk di keranjang untuk lanjut checkout.');
         }
 
+        if ($stockIssueMessage = $this->cartService->stockIssueSummary($selectedItems)) {
+            return redirect()->route('cart')->with('error', $stockIssueMessage);
+        }
+
         $userCanContinue = false;
         $userCheckout = null;
 
@@ -184,6 +188,10 @@ class CheckoutController extends Controller
 
         if (! $order || $selectedItems->isEmpty()) {
             return redirect()->route('cart')->with('info', 'Pilih minimal satu produk di keranjang untuk lanjut checkout.');
+        }
+
+        if ($stockIssueMessage = $this->cartService->stockIssueSummary($selectedItems)) {
+            return redirect()->route('cart')->with('error', $stockIssueMessage);
         }
 
         $this->checkoutService->syncOrderSnapshot($order, $cart, $selectedItems);

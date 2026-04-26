@@ -118,7 +118,7 @@
     var field = $(input);
     var shell = field.closest("[data-repeater-item]");
     var fileInput = shell.find("[data-image-file-input]")[0];
-    var pathInput = shell.find("[data-image-path-input]");
+    var pathInput = shell.find("[data-image-path-value]");
     var file = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
     var path = $.trim(pathInput.val() || "");
     var src = resolveImagePreviewSrc(path);
@@ -132,7 +132,7 @@
       return;
     }
 
-    renderImagePreview(shell, src, path || "Belum ada gambar dipilih.");
+    renderImagePreview(shell, src, path ? "Gambar tersimpan" : "Belum ada gambar dipilih.");
   }
 
   function renderRatingField(field) {
@@ -191,7 +191,7 @@
       }
     });
 
-    scope.find("[data-image-path-input]").each(function () {
+    scope.find("[data-image-file-input]").each(function () {
       updateImagePreview(this);
     });
   }
@@ -295,10 +295,6 @@
 
   $(document).on("click", "[data-repeater-remove]", function () {
     $(this).closest("[data-repeater-item]").remove();
-  });
-
-  $(document).on("input", "[data-image-path-input]", function () {
-    updateImagePreview(this);
   });
 
   $(document).on("change", "[data-image-file-input]", function () {

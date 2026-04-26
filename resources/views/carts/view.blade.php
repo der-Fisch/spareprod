@@ -66,6 +66,9 @@
                     <span class="account-badge">{{ $item->item->product->brand_name ?: 'Spare Part' }}</span>
                     <span class="cart-unit-price">{{ rupiah_catalog($item->quantity > 0 ? ($item->line_item_total / $item->quantity) : 0) }} / item</span>
                   </div>
+                  @if ($item->stock_issue_message)
+                    <p class="cart-stock-warning">{{ $item->stock_issue_message }}</p>
+                  @endif
                 </div>
 
                 <div class="cart-item-side">
@@ -122,6 +125,7 @@
           </form>
 
           <p class="cart-summary-helper">Hanya item yang dicentang yang akan lanjut ke flow checkout.</p>
+          <p class="cart-summary-helper">Estimasi pajak dihitung otomatis dari subtotal item terpilih dengan tarif pajak keranjang saat ini sebesar {{ number_format((float) $object->tax_percentage * 100, 1, ',', '.') }}%.</p>
         </div>
       </aside>
     @endif

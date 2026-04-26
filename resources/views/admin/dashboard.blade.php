@@ -7,7 +7,7 @@
     <div>
       <span class="eyebrow">Welcome Back</span>
       <h1>{{ $page_title }}</h1>
-      <p>Selamat datang, {{ auth()->user()->username }}. Halaman ini merangkum kondisi katalog dan order dalam satu workspace yang lebih rapi.</p>
+      <p>Selamat datang, {{ auth()->user()->username }} tercintahh~~</p>
     </div>
     <div class="admin-hero-icon">
       <i class="fa fa-line-chart"></i>
@@ -42,9 +42,9 @@
           <table class="table admin-table">
             <thead>
               <tr>
+                <th class="admin-table-number-col">No.</th>
                 <th>Order</th>
                 <th>Customer</th>
-                <th>Pembayaran</th>
                 <th>Status</th>
                 <th>Total</th>
                 <th>Masuk Pada</th>
@@ -53,9 +53,9 @@
             <tbody>
               @forelse ($revenue_rows as $row)
                 <tr>
+                  <td class="admin-table-number-cell">{{ $loop->iteration }}</td>
                   <td>{{ $row['order_id'] }}</td>
                   <td>{{ $row['customer'] }}</td>
-                  <td>{{ $row['payment'] }}</td>
                   <td><span class="table-chip">{{ $row['status'] }}</span></td>
                   <td>{{ rupiah_catalog($row['total']) }}</td>
                   <td>{{ optional($row['recorded_at'])->format('d/m/Y H:i') ?: '-' }}</td>
@@ -79,6 +79,7 @@
           <table class="table admin-table">
             <thead>
               <tr>
+                <th class="admin-table-number-col">No.</th>
                 <th>Jenis Data</th>
                 <th>Nama / ID</th>
                 <th>Informasi</th>
@@ -89,6 +90,7 @@
             <tbody>
               @forelse ($recent_rows as $row)
                 <tr>
+                  <td class="admin-table-number-cell">{{ $loop->iteration }}</td>
                   <td><span class="table-chip">{{ $row['type'] }}</span></td>
                   <td>{{ $row['title'] }}</td>
                   <td>{{ $row['meta'] }}</td>
@@ -96,7 +98,7 @@
                   <td>{{ optional($row['recorded_at'])->format('d/m/Y H:i') ?: '-' }}</td>
                 </tr>
               @empty
-                <tr><td colspan="5">Belum ada aktivitas terbaru.</td></tr>
+                <tr><td colspan="6">Belum ada aktivitas terbaru.</td></tr>
               @endforelse
             </tbody>
           </table>

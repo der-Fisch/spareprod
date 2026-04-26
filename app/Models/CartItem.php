@@ -66,4 +66,38 @@ class CartItem extends Model
 
         return $variation?->product?->image_url ?: asset('theme/img/marketing1.jpg');
     }
+
+    public function getAvailableStockAttribute(): int
+    {
+        $variation = $this->relationLoaded('item') ? $this->item : $this->item()->with('product')->first();
+        $product = $variation?->relationLoaded('product') ? $variation->product : $variation?->product()->first();
+
+        if ($product) {
+            return (int) $product->total_inventory;
+        }
+
+        return (int) ($variation?->inventory ?? 0);
+    }
+
+    public function getStockIssueMessageAttribute(): ?string
+    {
+        $variation = $this->relationLoaded('item') ? $this->item : $this->item()->with('product')->first();
+        $productTitle = $variation?->product?->title ?: 'produk ini';
+        $availableStock = $this->available_stock;
+
+        if ($availableStock <= 0) {
+            return 'Stok untuk produk "' . $productTitle . '" sedang habis. Silakan tunggu admin/staff melakukan restock.';
+        }
+
+        if ((int) $this->quantity > $availableStock) {
+            return 'Jumlah untuk produk "' . $productTitle . '" melebihi stok tersedia. Saat ini hanya tersedia ' . $availableStock . ' unit. Silakan kurangi jumlah atau tunggu admin/staff melakukan restock.';
+        }
+
+        return null;
+    }
+
+    public function getHasStockIssueAttribute(): bool
+    {
+        return $this->stock_issue_message !== null;
+    }
 }
