@@ -30,7 +30,7 @@
     @if (auth()->user()?->is_staff)
       <a class="public-sidebar-link{{ request()->routeIs('backoffice.*') ? ' is-active' : '' }}" href="{{ route('backoffice.dashboard') }}">
         <i class="fa fa-dashboard"></i>
-        <span>Admin Workspace</span>
+        <span>Panel Admin</span>
       </a>
     @endif
   </nav>

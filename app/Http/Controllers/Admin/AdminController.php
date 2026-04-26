@@ -1,28 +1,25 @@
 <?php
 
-namespace App\Http\Controllers\Backoffice;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
-use App\Models\ProductCompatibility;
-use App\Models\ProductImage;
-use App\Models\ProductSpecification;
-use App\Models\User;
-use App\Models\Variation;
+use App\Services\BackofficeEntityService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
-class BackofficeController extends Controller
+class AdminController extends Controller
 {
+    public function __construct(
+        protected BackofficeEntityService $entityService,
+    ) {
+    }
+
     public function dashboard(Request $request): View
     {
         $this->ensureStaff($request);
@@ -65,21 +62,6 @@ class BackofficeController extends Controller
                     })
             )
             ->concat(
-                User::query()
-                    ->latest('date_joined')
-                    ->take(4)
-                    ->get()
-                    ->map(function (User $user) {
-                        return [
-                            'type' => 'User',
-                            'title' => $user->username,
-                            'meta' => $user->email,
-                            'detail' => 'Akun baru terdaftar di sistem.',
-                            'recorded_at' => $user->date_joined,
-                        ];
-                    })
-            )
-            ->concat(
                 Order::query()
                     ->with(['user', 'accountUser'])
                     ->latest('created_at')
@@ -100,12 +82,11 @@ class BackofficeController extends Controller
             ->values()
             ->all();
 
-        return view('backoffice.dashboard', [
+        return view('admin.dashboard', [
             'page_title' => 'Dashboard',
             'cards' => [
                 ['label' => 'Total Products', 'value' => Product::query()->count(), 'accent' => 'orange', 'icon' => 'fa-cubes', 'note' => 'Produk aktif di katalog'],
                 ['label' => 'Total Categories', 'value' => Category::query()->count(), 'accent' => 'amber', 'icon' => 'fa-tags', 'note' => 'Kategori yang tersedia'],
-                ['label' => 'Total Users', 'value' => User::query()->count(), 'accent' => 'blue', 'icon' => 'fa-users', 'note' => 'Akun customer dan staff'],
                 ['label' => 'Total Orders', 'value' => Order::query()->count(), 'accent' => 'green', 'icon' => 'fa-shopping-cart', 'note' => 'Order yang tersimpan'],
             ],
             'recorded_revenue_total' => $recordedRevenueTotal,
@@ -132,7 +113,7 @@ class BackofficeController extends Controller
             'entity' => $entity,
             'entityConfig' => $config,
             'page_title' => $config['label'],
-            'page_description' => 'Manage ' . strtolower($config['label']) . ' with a searchable, modal-based workflow.',
+            'page_description' => 'Kelola data ' . strtolower($config['label']) . ' lewat alur pencarian dan modal yang lebih ringkas.',
             'page_obj' => $page,
             'summary_items' => ($config['summary'])($this->entityQuery($entity)),
             'search_query' => (string) $request->query('q', ''),
@@ -140,11 +121,11 @@ class BackofficeController extends Controller
 
         if ($this->isAjax($request)) {
             return response()->json([
-                'html' => view('partials.backoffice.entity_table_shell', $context)->render(),
+                'html' => view('partials.admin.entity_table_shell', $context)->render(),
             ]);
         }
 
-        return view('backoffice.entity_list', $context);
+        return view('admin.entity_list', $context);
     }
 
     public function modal(Request $request, string $entity, string $pkOrMode, ?string $mode = null): JsonResponse
@@ -158,13 +139,13 @@ class BackofficeController extends Controller
 
         if ($mode === 'detail') {
             return response()->json([
-                'html' => view('partials.backoffice.modal_detail', compact('entity', 'config', 'object'))->render(),
+                'html' => view('partials.admin.modal_detail', compact('entity', 'config', 'object'))->render(),
             ]);
         }
 
         if ($mode === 'delete') {
             return response()->json([
-                'html' => view('partials.backoffice.modal_delete', compact('entity', 'config', 'object'))->render(),
+                'html' => view('partials.admin.modal_delete', compact('entity', 'config', 'object'))->render(),
             ]);
         }
 
@@ -173,7 +154,7 @@ class BackofficeController extends Controller
         abort_if($mode === 'edit' && ! $config['can_update'], 400);
 
         return response()->json([
-            'html' => view('partials.backoffice.modal_form', [
+            'html' => view('partials.admin.modal_form', [
                 'entity' => $entity,
                 'config' => $config,
                 'mode' => $mode,
@@ -199,7 +180,7 @@ class BackofficeController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $config['singular'] . ' deleted successfully.',
+                'message' => $config['singular'] . ' berhasil dihapus.',
             ]);
         }
 
@@ -208,7 +189,7 @@ class BackofficeController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'html' => view('partials.backoffice.modal_form', [
+                'html' => view('partials.admin.modal_form', [
                     'entity' => $entity,
                     'config' => $config,
                     'mode' => $mode,
@@ -219,11 +200,11 @@ class BackofficeController extends Controller
             ], 400);
         }
 
-        $this->persistEntity($entity, $validator->validated(), $object);
+        $this->entityService->persist($entity, $validator->validated(), $object);
 
         return response()->json([
             'success' => true,
-            'message' => $config['singular'] . ' ' . ($mode === 'create' ? 'created' : 'updated') . ' successfully.',
+            'message' => $config['singular'] . ' berhasil ' . ($mode === 'create' ? 'ditambahkan' : 'diperbarui') . '.',
         ]);
     }
 
@@ -277,13 +258,12 @@ class BackofficeController extends Controller
                     ['name' => 'brand_name', 'label' => 'Brand Name', 'type' => 'text', 'placeholder' => 'Contoh: Bosch'],
                     ['name' => 'brand_type', 'label' => 'Brand Type', 'type' => 'select', 'options' => ['OEM' => 'OEM', 'Aftermarket' => 'Aftermarket'], 'placeholder' => 'Pilih tipe brand'],
                     ['name' => 'warranty_label', 'label' => 'Warranty Label', 'type' => 'text', 'placeholder' => 'Contoh: Garansi Resmi 1 Bulan'],
-                    ['name' => 'rating', 'label' => 'Rating', 'type' => 'rating'],
                     ['name' => 'price', 'label' => 'Price', 'type' => 'currency_catalog', 'placeholder' => 'Contoh: Rp145.000'],
+                    ['name' => 'stok', 'label' => 'Stock', 'type' => 'number', 'placeholder' => 'Contoh: 24'],
                     ['name' => 'default_category_id', 'label' => 'Default Category', 'type' => 'select', 'options' => Category::query()->orderBy('title')->pluck('title', 'id')->all(), 'placeholder' => 'Pilih kategori utama'],
                     ['name' => 'categories', 'label' => 'Categories', 'type' => 'multiselect', 'options' => Category::query()->orderBy('title')->pluck('title', 'id')->all(), 'placeholder' => 'Cari dan pilih satu atau lebih kategori'],
                     ['name' => 'compatibility_entries', 'label' => 'Compatibilities', 'type' => 'compatibility_repeater', 'help_text' => 'Tambahkan kendaraan yang didukung satu per satu.'],
                     ['name' => 'specification_entries', 'label' => 'Technical Specifications', 'type' => 'specification_repeater', 'help_text' => 'Tambahkan spesifikasi teknis per baris agar lebih mudah dibaca.'],
-                    ['name' => 'variation_entries', 'label' => 'Variations & Stock', 'type' => 'variation_repeater', 'help_text' => 'Setiap variasi menyimpan harga, harga promo, dan stoknya masing-masing.'],
                     ['name' => 'image_entries', 'label' => 'Product Images', 'type' => 'image_repeater', 'help_text' => 'Tambahkan gambar satu per satu dan periksa preview-nya sebelum menyimpan.'],
                     ['name' => 'active', 'label' => 'Active', 'type' => 'checkbox'],
                 ],
@@ -293,11 +273,9 @@ class BackofficeController extends Controller
                     ['label' => 'Brand', 'key' => 'brand_name'],
                     ['label' => 'Brand Type', 'key' => 'brand_type'],
                     ['label' => 'Warranty', 'key' => 'warranty_label'],
-                    ['label' => 'Rating', 'key' => 'rating_value'],
                     ['label' => 'Stock', 'key' => 'stock_display_label'],
                     ['label' => 'Compatibilities', 'key' => 'compatibility_list', 'type' => 'list'],
                     ['label' => 'Technical Specifications', 'key' => 'technical_specs', 'type' => 'key_value'],
-                    ['label' => 'Variations', 'key' => 'variations', 'type' => 'variation_list'],
                     ['label' => 'Product Images', 'key' => 'images', 'type' => 'image_list'],
                 ],
                 'summary' => fn (Builder $query) => ['Total Products' => (clone $query)->count(), 'Active' => (clone $query)->where('active', true)->count()],
@@ -309,8 +287,8 @@ class BackofficeController extends Controller
                     'brand_name' => ['nullable', 'string', 'max:255'],
                     'brand_type' => ['nullable', 'in:OEM,Aftermarket'],
                     'warranty_label' => ['nullable', 'string', 'max:255'],
-                    'rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
                     'price' => ['required', 'numeric', 'min:0'],
+                    'stok' => ['required', 'integer', 'min:0'],
                     'default_category_id' => ['nullable', 'exists:categories,id'],
                     'categories' => ['nullable', 'array'],
                     'categories.*' => ['exists:categories,id'],
@@ -321,49 +299,11 @@ class BackofficeController extends Controller
                     'specification_entries' => ['nullable', 'array'],
                     'specification_entries.*.label' => ['nullable', 'string', 'max:255'],
                     'specification_entries.*.value' => ['nullable', 'string', 'max:255'],
-                    'variation_entries' => ['nullable', 'array'],
-                    'variation_entries.*.title' => ['nullable', 'string', 'max:255'],
-                    'variation_entries.*.price' => ['nullable', 'numeric', 'min:0'],
-                    'variation_entries.*.sale_price' => ['nullable', 'numeric', 'min:0'],
-                    'variation_entries.*.inventory' => ['nullable', 'integer', 'min:0'],
                     'image_entries' => ['nullable', 'array'],
                     'image_entries.*.image_path' => ['nullable', 'string', 'max:255'],
                     'image_entries.*.alt_text' => ['nullable', 'string', 'max:255'],
                     'image_entries.*.image_file' => ['nullable', 'image', 'max:4096'],
                     'active' => ['nullable', 'boolean'],
-                ],
-            ],
-            'users' => [
-                'label' => 'Users',
-                'singular' => 'User',
-                'model' => User::class,
-                'can_create' => true,
-                'can_update' => true,
-                'columns' => [
-                    ['label' => 'Username', 'key' => 'username'],
-                    ['label' => 'Email', 'key' => 'email'],
-                    ['label' => 'Role', 'key' => 'is_staff', 'type' => 'role'],
-                    ['label' => 'Status', 'key' => 'is_active', 'type' => 'boolean'],
-                    ['label' => 'Joined', 'key' => 'date_joined', 'type' => 'date'],
-                ],
-                'fields' => [
-                    ['name' => 'username', 'label' => 'Username', 'type' => 'text', 'placeholder' => 'Contoh: admin_ops'],
-                    ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'placeholder' => 'Contoh: admin@spareprod.test'],
-                    ['name' => 'first_name', 'label' => 'First Name', 'type' => 'text', 'placeholder' => 'Contoh: Budi'],
-                    ['name' => 'last_name', 'label' => 'Last Name', 'type' => 'text', 'placeholder' => 'Contoh: Santoso'],
-                    ['name' => 'password', 'label' => 'Password', 'type' => 'password', 'create_only' => true, 'placeholder' => 'Minimal 8 karakter'],
-                    ['name' => 'is_active', 'label' => 'Active', 'type' => 'checkbox'],
-                    ['name' => 'is_staff', 'label' => 'Staff', 'type' => 'checkbox'],
-                ],
-                'summary' => fn (Builder $query) => ['Total Users' => (clone $query)->count(), 'Staff' => (clone $query)->where('is_staff', true)->count()],
-                'rules' => fn (?User $user) => [
-                    'username' => ['required', 'string', 'max:150', 'unique:users,username' . ($user ? ',' . $user->id : '')],
-                    'email' => ['required', 'email', 'max:255', 'unique:users,email' . ($user ? ',' . $user->id : '')],
-                    'first_name' => ['nullable', 'string', 'max:150'],
-                    'last_name' => ['nullable', 'string', 'max:150'],
-                    'password' => [$user ? 'nullable' : 'required', 'string', 'min:8'],
-                    'is_active' => ['nullable', 'boolean'],
-                    'is_staff' => ['nullable', 'boolean'],
                 ],
             ],
             'orders' => [
@@ -409,8 +349,7 @@ class BackofficeController extends Controller
     {
         return match ($entity) {
             'categories' => Category::query()->latest('created_at'),
-            'products' => Product::query()->with(['defaultCategory', 'categories', 'compatibilities', 'specifications', 'variations', 'images'])->latest('id'),
-            'users' => User::query()->latest('date_joined'),
+            'products' => Product::query()->with(['defaultCategory', 'categories', 'compatibilities', 'specifications', 'images'])->latest('id'),
             'orders' => Order::query()->with(['user', 'cart.items', 'orderItems'])->latest('id'),
             default => abort(404),
         };
@@ -425,7 +364,6 @@ class BackofficeController extends Controller
         match ($entity) {
             'categories' => $query->where(fn ($q) => $q->where('title', 'like', '%' . $term . '%')->orWhere('slug', 'like', '%' . $term . '%')->orWhere('description', 'like', '%' . $term . '%')),
             'products' => $query->where(fn ($q) => $q->where('title', 'like', '%' . $term . '%')->orWhere('description', 'like', '%' . $term . '%')->orWhereHas('defaultCategory', fn ($categoryQuery) => $categoryQuery->where('title', 'like', '%' . $term . '%'))),
-            'users' => $query->where(fn ($q) => $q->where('username', 'like', '%' . $term . '%')->orWhere('email', 'like', '%' . $term . '%')->orWhere('first_name', 'like', '%' . $term . '%')->orWhere('last_name', 'like', '%' . $term . '%')),
             'orders' => $query->where(fn ($q) => $q->where('order_id', 'like', '%' . $term . '%')->orWhere('status', 'like', '%' . $term . '%')->orWhereHas('user', fn ($userQuery) => $userQuery->where('email', 'like', '%' . $term . '%'))),
             default => null,
         };
@@ -442,8 +380,8 @@ class BackofficeController extends Controller
                 'brand_name' => $object->brand_name,
                 'brand_type' => $object->brand_type,
                 'warranty_label' => $object->warranty_label,
-                'rating' => $object->rating,
                 'price' => $object->price,
+                'stok' => $object->stok,
                 'default_category_id' => $object->default_category_id,
                 'categories' => $object->categories()->pluck('categories.id')->all(),
                 'compatibility_entries' => $object->compatibilities
@@ -461,15 +399,6 @@ class BackofficeController extends Controller
                     ])
                     ->values()
                     ->all(),
-                'variation_entries' => $object->variations
-                    ->map(fn ($item) => [
-                        'title' => $item->title,
-                        'price' => $item->price,
-                        'sale_price' => $item->sale_price,
-                        'inventory' => $item->inventory ?? 0,
-                    ])
-                    ->values()
-                    ->all(),
                 'image_entries' => $object->images
                     ->map(fn ($item) => [
                         'image_path' => $item->image_path,
@@ -480,86 +409,12 @@ class BackofficeController extends Controller
                     ->all(),
                 'active' => $object->active,
             ],
-            'users' => [
-                'username' => $object->username,
-                'email' => $object->email,
-                'first_name' => $object->first_name,
-                'last_name' => $object->last_name,
-                'is_active' => $object->is_active,
-                'is_staff' => $object->is_staff,
-            ],
             'orders' => [
                 'status' => $object->status,
                 'status_update_note' => 'Status order akan diperbarui tanpa mengubah detail transaksi lainnya.',
             ],
             default => $object->toArray(),
         };
-    }
-
-    protected function persistEntity(string $entity, array $data, mixed $object): void
-    {
-        DB::transaction(function () use ($entity, $data, $object) {
-            if ($entity === 'categories') {
-                $category = $object ?? new Category();
-                $category->fill([
-                    'title' => $data['title'],
-                    'slug' => $data['slug'],
-                    'description' => $data['description'] ?? null,
-                    'active' => (bool) ($data['active'] ?? false),
-                ]);
-                $category->save();
-                return;
-            }
-
-            if ($entity === 'products') {
-                $product = $object ?? new Product();
-                $product->fill([
-                    'title' => $data['title'],
-                    'description' => $data['description'] ?? null,
-                    'sku' => $data['sku'] ?? null,
-                    'oem_number' => $data['oem_number'] ?? null,
-                    'brand_name' => $data['brand_name'] ?? null,
-                    'brand_type' => $data['brand_type'] ?? null,
-                    'warranty_label' => $data['warranty_label'] ?? null,
-                    'rating' => $data['rating'] ?? null,
-                    'price' => $data['price'],
-                    'default_category_id' => $data['default_category_id'] ?? null,
-                    'active' => (bool) ($data['active'] ?? false),
-                ]);
-                $product->save();
-                $product->categories()->sync($data['categories'] ?? []);
-                $this->syncProductCompatibilities($product, $data['compatibility_entries'] ?? []);
-                $this->syncProductSpecifications($product, $data['specification_entries'] ?? []);
-                $this->syncProductImages($product, $data['image_entries'] ?? []);
-                $this->syncProductVariations($product, $data['variation_entries'] ?? []);
-                return;
-            }
-
-            if ($entity === 'users') {
-                $user = $object ?? new User();
-                $user->fill([
-                    'username' => $data['username'],
-                    'email' => $data['email'],
-                    'first_name' => $data['first_name'] ?? null,
-                    'last_name' => $data['last_name'] ?? null,
-                    'is_active' => (bool) ($data['is_active'] ?? false),
-                    'is_staff' => (bool) ($data['is_staff'] ?? false),
-                    'date_joined' => $user->date_joined ?? now(),
-                ]);
-                if (! empty($data['password'])) {
-                    $user->password = Hash::make($data['password']);
-                }
-                $user->save();
-                return;
-            }
-
-            if ($entity === 'orders') {
-                $object->fill([
-                    'status' => $data['status'],
-                ]);
-                $object->save();
-            }
-        });
     }
 
     protected function ensureStaff(Request $request): void
@@ -581,174 +436,5 @@ class BackofficeController extends Controller
         }
 
         return [(int) $pkOrMode, $mode];
-    }
-
-    protected function syncProductCompatibilities(Product $product, array $entries): void
-    {
-        $entries = collect($entries)
-            ->map(function ($entry) {
-                if (! is_array($entry)) {
-                    return null;
-                }
-
-                return [
-                    'vehicle_name' => trim((string) ($entry['vehicle_name'] ?? '')),
-                    'year_start' => filled($entry['year_start'] ?? null) ? (int) $entry['year_start'] : null,
-                    'year_end' => filled($entry['year_end'] ?? null) ? (int) $entry['year_end'] : null,
-                ];
-            })
-            ->filter();
-
-        ProductCompatibility::query()->where('product_id', $product->id)->delete();
-
-        foreach ($entries as $index => $entry) {
-            if (! filled($entry['vehicle_name'])) {
-                continue;
-            }
-
-            ProductCompatibility::query()->create([
-                'product_id' => $product->id,
-                'vehicle_name' => $entry['vehicle_name'],
-                'year_start' => $entry['year_start'],
-                'year_end' => $entry['year_end'],
-                'sort_order' => $index + 1,
-            ]);
-        }
-    }
-
-    protected function syncProductSpecifications(Product $product, array $entries): void
-    {
-        $entries = collect($entries)
-            ->map(function ($entry) {
-                if (! is_array($entry)) {
-                    return null;
-                }
-
-                return [
-                    'label' => trim((string) ($entry['label'] ?? '')),
-                    'value' => trim((string) ($entry['value'] ?? '')),
-                ];
-            })
-            ->filter();
-
-        ProductSpecification::query()->where('product_id', $product->id)->delete();
-
-        foreach ($entries as $index => $entry) {
-            if (! filled($entry['label']) || ! filled($entry['value'])) {
-                continue;
-            }
-
-            ProductSpecification::query()->create([
-                'product_id' => $product->id,
-                'label' => $entry['label'],
-                'value' => $entry['value'],
-                'sort_order' => $index + 1,
-            ]);
-        }
-    }
-
-    protected function syncProductImages(Product $product, array $entries): void
-    {
-        $entries = collect($entries)
-            ->map(function ($entry) {
-                if (! is_array($entry)) {
-                    return null;
-                }
-
-                return [
-                    'image_path' => trim((string) ($entry['image_path'] ?? '')),
-                    'alt_text' => trim((string) ($entry['alt_text'] ?? '')),
-                    'image_file' => $entry['image_file'] ?? null,
-                ];
-            })
-            ->filter();
-
-        ProductImage::query()->where('product_id', $product->id)->delete();
-
-        foreach ($entries as $index => $entry) {
-            $imagePath = $entry['image_path'];
-
-            if (($entry['image_file'] ?? null) instanceof UploadedFile) {
-                $imagePath = $this->storeProductImageUpload($entry['image_file']);
-            }
-
-            if (! filled($imagePath)) {
-                continue;
-            }
-
-            ProductImage::query()->create([
-                'product_id' => $product->id,
-                'image_path' => $imagePath,
-                'alt_text' => $entry['alt_text'] ?: $product->title,
-                'sort_order' => $index + 1,
-            ]);
-        }
-    }
-
-    protected function syncProductVariations(Product $product, array $entries): void
-    {
-        $entries = collect($entries)
-            ->map(function ($entry) {
-                if (! is_array($entry)) {
-                    return null;
-                }
-
-                return [
-                    'title' => trim((string) ($entry['title'] ?? '')),
-                    'price' => $entry['price'] ?? null,
-                    'sale_price' => $entry['sale_price'] ?? null,
-                    'inventory' => $entry['inventory'] ?? null,
-                ];
-            })
-            ->filter();
-
-        if ($entries->isEmpty()) {
-            Variation::query()->where('product_id', $product->id)->delete();
-            return;
-        }
-
-        $activeTitles = [];
-
-        foreach ($entries as $entry) {
-            if (! filled($entry['title']) || ! is_numeric($entry['price'] ?? null)) {
-                continue;
-            }
-
-            $activeTitles[] = $entry['title'];
-
-            Variation::query()->updateOrCreate(
-                [
-                    'product_id' => $product->id,
-                    'title' => $entry['title'],
-                ],
-                [
-                    'price' => (float) $entry['price'],
-                    'sale_price' => filled($entry['sale_price']) && is_numeric($entry['sale_price']) ? (float) $entry['sale_price'] : null,
-                    'inventory' => is_numeric($entry['inventory'] ?? null) ? (int) $entry['inventory'] : 0,
-                    'active' => true,
-                ]
-            );
-        }
-
-        Variation::query()
-            ->where('product_id', $product->id)
-            ->whereNotIn('title', $activeTitles)
-            ->delete();
-    }
-
-    protected function storeProductImageUpload(UploadedFile $file): string
-    {
-        $directory = public_path('uploads/products');
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0755, true);
-        }
-
-        $extension = $file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg';
-        $filename = Str::uuid()->toString() . '.' . strtolower($extension);
-
-        $file->move($directory, $filename);
-
-        return 'uploads/products/' . $filename;
     }
 }

@@ -105,7 +105,6 @@
             @foreach ($checkoutItems as $item)
               @php
                 $productTitle = $item->product_title ?? $item->item?->product?->title ?? 'Produk';
-                $variationTitle = $item->variation_title ?? $item->item?->title ?? null;
                 $productImage = $item->product_image_url ?? $item->item?->product?->image_url ?? asset('theme/img/marketing1.jpg');
               @endphp
               <article class="checkout-item-card">
@@ -114,9 +113,6 @@
                 </div>
                 <div class="checkout-item-copy">
                   <h3>{{ $productTitle }}</h3>
-                  @if ($variationTitle)
-                    <p>{{ $variationTitle }}</p>
-                  @endif
                   <div class="checkout-item-meta">
                     <span class="account-badge">Qty {{ $item->quantity }}</span>
                     <span>{{ rupiah_catalog($item->line_item_total) }}</span>

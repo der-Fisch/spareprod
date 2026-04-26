@@ -63,7 +63,7 @@
               <span class="nav-user-avatar">{{ avatar_initials(auth()->user()) }}</span>
               <span class="nav-user-copy">
                 <strong>{{ auth()->user()->username }}</strong>
-                <small>{{ auth()->user()->is_staff ? 'Admin Workspace' : 'Signed in' }}</small>
+                <small>{{ auth()->user()->is_staff ? 'Area Admin' : 'Sudah masuk' }}</small>
               </span>
               <span class="caret"></span>
             </a>

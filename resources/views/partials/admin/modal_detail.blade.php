@@ -9,7 +9,7 @@
         @php($detailFields = $config['detail_fields'] ?? $config['columns'])
         @foreach ($detailFields as $column)
           @php($value = resolve_path_value($object, $column['key']))
-          @php($richType = in_array(($column['type'] ?? ''), ['list', 'key_value', 'variation_list', 'image_list'], true))
+          @php($richType = in_array(($column['type'] ?? ''), ['list', 'key_value', 'image_list'], true))
           <div class="detail-row">
             <span>{{ $column['label'] }}</span>
             @if ($richType)
@@ -41,17 +41,6 @@
                     <div class="detail-kv-item">
                       <span>{{ $itemLabel }}</span>
                       <b>{{ $itemValue }}</b>
-                    </div>
-                  @empty
-                    <span>-</span>
-                  @endforelse
-                </div>
-              @elseif (($column['type'] ?? null) === 'variation_list')
-                <div class="detail-kv-list">
-                  @forelse ($value ?? [] as $variation)
-                    <div class="detail-kv-item">
-                      <span>{{ $variation->title }}</span>
-                      <b>{{ $variation->formatted_effective_price }} | {{ $variation->stock_display_label }}</b>
                     </div>
                   @empty
                     <span>-</span>

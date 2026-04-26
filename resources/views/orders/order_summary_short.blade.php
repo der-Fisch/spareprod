@@ -7,12 +7,8 @@
       @foreach ($order->presentedItems() as $item)
         @php
           $productTitle = $item->product_title ?? $item->item?->product?->title ?? 'Produk';
-          $variationTitle = $item->variation_title ?? $item->item?->title ?? null;
         @endphp
         <b>{{ $productTitle }}</b>
-        @if ($variationTitle)
-          <span class="text-muted">({{ $variationTitle }})</span>
-        @endif
         x{{ $item->quantity }} - {{ rupiah_catalog($item->line_item_total) }}<br>
       @endforeach
     </td>
@@ -27,8 +23,9 @@
   @php
     $addressText = trim((string) $order->shippingAddress->address);
     $recipientName = trim((string) $order->shippingAddress->recipient_name);
+    $addressSuffix = $recipientName !== '' ? ' (Atas Nama ' . $recipientName . ')' : '';
   @endphp
   <p>
-    <b>Alamat :</b> {{ $addressText }}@if ($recipientName !== '') (Atas Nama {{ $recipientName }})@endif
+    <b>Alamat :</b> {{ $addressText }}{{ $addressSuffix }}
   </p>
 @endif

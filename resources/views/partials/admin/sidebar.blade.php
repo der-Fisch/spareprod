@@ -7,7 +7,7 @@
         <small>Industrial Auto Parts</small>
       </span>
     </a>
-    <p class="backoffice-sidebar-subtitle">Admin workspace untuk katalog, user, dan order.</p>
+    <p class="backoffice-sidebar-subtitle">Panel admin untuk katalog dan order.</p>
   </div>
   <nav class="backoffice-nav">
     <a href="{{ route('backoffice.dashboard') }}" class="backoffice-nav-link{{ request()->routeIs('backoffice.dashboard') ? ' is-active' : '' }}">
@@ -16,15 +16,11 @@
     </a>
     <a href="{{ route('backoffice.entity.list', ['entity' => 'categories']) }}" class="backoffice-nav-link{{ request()->is('backoffice/categories*') ? ' is-active' : '' }}">
       <i class="fa fa-tags"></i>
-      <span>Categories</span>
+      <span>Kategori</span>
     </a>
     <a href="{{ route('backoffice.entity.list', ['entity' => 'products']) }}" class="backoffice-nav-link{{ request()->is('backoffice/products*') ? ' is-active' : '' }}">
       <i class="fa fa-cubes"></i>
-      <span>Products</span>
-    </a>
-    <a href="{{ route('backoffice.entity.list', ['entity' => 'users']) }}" class="backoffice-nav-link{{ request()->is('backoffice/users*') ? ' is-active' : '' }}">
-      <i class="fa fa-users"></i>
-      <span>Users</span>
+      <span>Produk</span>
     </a>
     <a href="{{ route('backoffice.entity.list', ['entity' => 'orders']) }}" class="backoffice-nav-link{{ request()->is('backoffice/orders*') ? ' is-active' : '' }}">
       <i class="fa fa-shopping-cart"></i>

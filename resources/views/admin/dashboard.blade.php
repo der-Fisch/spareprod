@@ -1,13 +1,13 @@
-@extends('backoffice.base')
+@extends('admin.base')
 
-@section('title', 'Backoffice Dashboard | Spare Soko')
+@section('title', 'Dashboard Admin | Spare Soko')
 
 @section('content')
   <section class="backoffice-hero">
     <div>
       <span class="eyebrow">Welcome Back</span>
       <h1>{{ $page_title }}</h1>
-      <p>Selamat datang, {{ auth()->user()->username }}. Halaman ini merangkum kondisi katalog, akun pengguna, dan order dalam satu workspace yang lebih rapi.</p>
+      <p>Selamat datang, {{ auth()->user()->username }}. Halaman ini merangkum kondisi katalog dan order dalam satu workspace yang lebih rapi.</p>
     </div>
     <div class="backoffice-hero-icon">
       <i class="fa fa-line-chart"></i>

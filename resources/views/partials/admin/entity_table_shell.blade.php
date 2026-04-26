@@ -13,7 +13,7 @@
       <div class="panel-toolbar-actions">
         <form class="backoffice-search-form" method="GET" data-entity-search data-results-target="#entity-table-shell">
           <i class="fa fa-search"></i>
-          <input type="text" name="q" value="{{ $search_query }}" placeholder="Search {{ strtolower($entityConfig['label']) }}">
+          <input type="text" name="q" value="{{ $search_query }}" placeholder="Cari {{ strtolower($entityConfig['label']) }}">
           <button type="submit" class="btn btn-ghost">Cari</button>
         </form>
         <a href="{{ route('backoffice.entity.list', ['entity' => $entity]) }}" class="backoffice-reset-link" data-entity-page>Reset</a>
@@ -28,6 +28,6 @@
         <h2>Daftar {{ strtolower($entityConfig['label']) }}</h2>
       </div>
     </div>
-    @include('partials.backoffice.entity_table')
+    @include('partials.admin.entity_table')
   </div>
 </div>

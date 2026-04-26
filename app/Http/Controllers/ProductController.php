@@ -12,7 +12,7 @@ class ProductController extends Controller
     {
         $products = Product::query()
             ->active()
-            ->with(['defaultCategory', 'variations', 'categories', 'compatibilities', 'specifications', 'images']);
+            ->with(['defaultCategory', 'categories', 'compatibilities', 'specifications', 'images']);
 
         if ($search = trim((string) $request->string('q'))) {
             $products->where(function ($query) use ($search) {
@@ -27,11 +27,11 @@ class ProductController extends Controller
         }
 
         if ($minPrice = $this->parseCatalogPrice($request->input('min_price'))) {
-            $products->whereHas('variations', fn ($query) => $query->where('price', '>=', $minPrice));
+            $products->where('price', '>=', $minPrice);
         }
 
         if ($maxPrice = $this->parseCatalogPrice($request->input('max_price'))) {
-            $products->whereHas('variations', fn ($query) => $query->where('price', '<=', $maxPrice));
+            $products->where('price', '<=', $maxPrice);
         }
 
         $paginatedProducts = $products
@@ -49,11 +49,11 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        $product->load(['defaultCategory', 'variations', 'categories', 'compatibilities', 'specifications', 'images']);
+        $product->load(['defaultCategory', 'categories', 'compatibilities', 'specifications', 'images']);
 
         $relatedProducts = Product::query()
             ->active()
-            ->with(['defaultCategory', 'variations', 'compatibilities', 'specifications', 'images'])
+            ->with(['defaultCategory', 'compatibilities', 'specifications', 'images'])
             ->whereKeyNot($product->id)
             ->where(function ($query) use ($product) {
                 $query->where('default_category_id', $product->default_category_id);
@@ -68,6 +68,7 @@ class ProductController extends Controller
         return view('products.show', [
             'product' => $product,
             'relatedProducts' => $relatedProducts,
+            'cartItemId' => $product->primaryVariation()?->id,
         ]);
     }
 

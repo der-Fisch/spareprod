@@ -229,6 +229,10 @@ class Product extends Model
 
     public function getTotalInventoryAttribute(): int
     {
+        if ($this->stok !== null) {
+            return (int) $this->stok;
+        }
+
         if ($this->relationLoaded('variations')) {
             return (int) $this->variations->sum('inventory');
         }
@@ -293,9 +297,36 @@ class Product extends Model
             'kode_produk' => $this->kode_produk ?: $this->sku ?: 'PRD-' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT),
             'kategori_id' => $this->kategori_id ?: $this->default_category_id,
             'harga' => $this->harga ?? $this->price,
-            'stok' => (int) $this->variations()->sum('inventory'),
+            'stok' => $this->stok ?? (int) $this->variations()->sum('inventory'),
             'gambar' => $this->images()->orderBy('sort_order')->value('image_path') ?: $this->gambar,
             'tipe_kendaraan' => $this->compatibilities()->orderBy('sort_order')->value('vehicle_name') ?: ($this->tipe_kendaraan ?: 'Universal'),
         ])->saveQuietly();
+    }
+
+    public function primaryVariation(): ?Variation
+    {
+        if ($this->relationLoaded('variations')) {
+            return $this->variations->sortBy('id')->first();
+        }
+
+        return $this->variations()->orderBy('id')->first();
+    }
+
+    public function syncPrimaryVariation(): Variation
+    {
+        $variation = $this->primaryVariation() ?? new Variation([
+            'product_id' => $this->id,
+            'title' => 'Default',
+        ]);
+
+        $variation->product_id = $this->id;
+        $variation->title = $variation->title ?: 'Default';
+        $variation->price = (float) ($this->price ?? $this->harga ?? 0);
+        $variation->sale_price = null;
+        $variation->inventory = (int) ($this->stok ?? 0);
+        $variation->active = true;
+        $variation->save();
+
+        return $variation;
     }
 }

@@ -32,7 +32,7 @@ class CatalogPagesTest extends TestCase
         $response->assertOk();
         $response->assertSee('Product Catalog', false);
         $response->assertSee('produk tersedia', false);
-        $response->assertSee('View Details', false);
+        $response->assertSee('Lihat Detail', false);
     }
 
     public function test_product_detail_renders_successfully(): void
@@ -48,10 +48,10 @@ class CatalogPagesTest extends TestCase
         $response->assertSee('Spesifikasi Teknis', false);
         $response->assertSee('Rating', false);
         $response->assertDontSee('ulasan', false);
-        $response->assertSee('Stok Varian', false);
+        $response->assertSee('Stok Produk', false);
         $response->assertSee('Gambar berikutnya', false);
         $response->assertDontSee('Kompatibilitas', false);
-        $response->assertSee('data-stock-display-label', false);
+        $response->assertDontSee('Variation', false);
     }
 
     public function test_auth_pages_render_the_static_forms(): void

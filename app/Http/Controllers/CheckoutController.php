@@ -2,32 +2,35 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
-use App\Models\CartItem;
-use App\Models\Order;
-use App\Models\User;
+use App\Http\Requests\Checkout\FinalizeCheckoutRequest;
+use App\Http\Requests\Checkout\GuestCheckoutRequest;
+use App\Http\Requests\Checkout\StoreCheckoutAddressRequest;
+use App\Http\Requests\Checkout\StoreCheckoutAddressSelectionRequest;
 use App\Models\UserCheckout;
-use App\Models\UserPaymentMethod;
+use App\Services\CartService;
+use App\Services\CheckoutService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CheckoutController extends Controller
 {
-    public function show(Request $request, CartController $cartController): View|RedirectResponse
+    public function __construct(
+        protected CartService $cartService,
+        protected CheckoutService $checkoutService,
+    ) {
+    }
+
+    public function show(Request $request): View|RedirectResponse
     {
-        $cart = $cartController->resolveCart($request);
+        $cart = $this->cartService->resolveCart($request);
         $cart->load('cartItems.item.product.images');
 
         if ($cart->items()->count() < 1) {
             return redirect()->route('cart');
         }
 
-        $selectedItems = $this->selectedCartItems($cart);
+        $selectedItems = $this->cartService->selectedItems($cart);
         if ($selectedItems->isEmpty()) {
             return redirect()->route('cart')->with('info', 'Pilih minimal satu produk di keranjang untuk lanjut checkout.');
         }
@@ -37,7 +40,7 @@ class CheckoutController extends Controller
         $paymentMethods = collect();
 
         if ($request->user()) {
-            $userCheckout = $this->resolveUserCheckout($request);
+            $userCheckout = $this->checkoutService->resolveUserCheckout($request);
             $userCanContinue = true;
             $paymentMethods = $request->user()->paymentMethods()->orderByDesc('is_default')->latest('id')->get();
         } elseif ($request->session()->has('user_checkout_id')) {
@@ -45,7 +48,7 @@ class CheckoutController extends Controller
             $userCanContinue = $userCheckout !== null;
         }
 
-        $order = $this->resolveOrder($request, $cart);
+        $order = $this->checkoutService->resolveOrder($request, $cart);
 
         if ($userCheckout) {
             $order->user()->associate($userCheckout);
@@ -79,7 +82,7 @@ class CheckoutController extends Controller
             }
         }
 
-        $this->syncOrderSnapshot($order, $cart, $selectedItems);
+        $this->checkoutService->syncOrderSnapshot($order, $cart, $selectedItems);
 
         if ($userCheckout && ! $order->shipping_address_id) {
             return redirect()->route('checkout.address');
@@ -95,27 +98,10 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function guest(Request $request): RedirectResponse
+    public function guest(GuestCheckoutRequest $request): RedirectResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email' => ['required', 'email'],
-            'email2' => ['required', 'same:email'],
-        ], [
-            'email2.same' => 'Please confirm emails are the same',
-        ]);
-
-        $validator->after(function ($validator) use ($request) {
-            if (User::query()->where('email', $request->input('email'))->exists()) {
-                $validator->errors()->add('email2', 'This User already exists. Please login instead.');
-            }
-        });
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator, 'guest')->withInput();
-        }
-
         $userCheckout = UserCheckout::query()->firstOrCreate([
-            'email' => $request->input('email'),
+            'email' => $request->validated('email'),
         ]);
 
         $request->session()->put('user_checkout_id', $userCheckout->id);
@@ -123,17 +109,17 @@ class CheckoutController extends Controller
         return redirect()->route('checkout');
     }
 
-    public function address(Request $request, CartController $cartController): View|RedirectResponse
+    public function address(Request $request): View|RedirectResponse
     {
-        $checkout = $this->resolveUserCheckout($request, false);
+        $checkout = $this->checkoutService->resolveUserCheckout($request, false);
         if (! $checkout) {
             return redirect()->route('checkout');
         }
 
-        $cart = $cartController->resolveCart($request);
+        $cart = $this->cartService->resolveCart($request);
         $cart->load('cartItems.item.product.images');
 
-        $selectedItems = $this->selectedCartItems($cart);
+        $selectedItems = $this->cartService->selectedItems($cart);
         if ($selectedItems->isEmpty()) {
             return redirect()->route('cart')->with('info', 'Pilih minimal satu produk di keranjang untuk lanjut checkout.');
         }
@@ -144,8 +130,8 @@ class CheckoutController extends Controller
             return redirect()->route('checkout.address.create')->with('info', 'Silakan tambahkan alamat pengiriman terlebih dahulu.');
         }
 
-        $order = $this->resolveOrder($request, $cart);
-        $this->syncOrderSnapshot($order, $cart, $selectedItems);
+        $order = $this->checkoutService->resolveOrder($request, $cart);
+        $this->checkoutService->syncOrderSnapshot($order, $cart, $selectedItems);
 
         return view('orders.address_select', [
             'shippingAddresses' => $shippingAddresses,
@@ -153,27 +139,23 @@ class CheckoutController extends Controller
         ]);
     }
 
-    public function storeAddressSelection(Request $request, CartController $cartController): RedirectResponse
+    public function storeAddressSelection(StoreCheckoutAddressSelectionRequest $request): RedirectResponse
     {
-        $checkout = $this->resolveUserCheckout($request, false);
+        $checkout = $this->checkoutService->resolveUserCheckout($request, false);
         if (! $checkout) {
             return redirect()->route('checkout');
         }
 
-        $validated = $request->validate([
-            'shipping_address' => ['required', 'integer'],
-        ]);
-
-        $shipping = $checkout->addresses()->whereKey($validated['shipping_address'])->firstOrFail();
-        $cart = $cartController->resolveCart($request);
-        $selectedItems = $this->selectedCartItems($cart);
+        $shipping = $checkout->addresses()->whereKey($request->validated('shipping_address'))->firstOrFail();
+        $cart = $this->cartService->resolveCart($request);
+        $selectedItems = $this->cartService->selectedItems($cart);
 
         if ($selectedItems->isEmpty()) {
             return redirect()->route('cart')->with('info', 'Pilih minimal satu produk di keranjang untuk lanjut checkout.');
         }
 
-        $order = $this->resolveOrder($request, $cart);
-        $this->syncOrderSnapshot($order, $cart, $selectedItems);
+        $order = $this->checkoutService->resolveOrder($request, $cart);
+        $this->checkoutService->syncOrderSnapshot($order, $cart, $selectedItems);
         $order->shippingAddress()->associate($shipping);
         $order->billingAddress()->associate($shipping);
         $order->save();
@@ -183,30 +165,21 @@ class CheckoutController extends Controller
 
     public function createAddress(Request $request): View|RedirectResponse
     {
-        if (! $this->resolveUserCheckout($request, false)) {
+        if (! $this->checkoutService->resolveUserCheckout($request, false)) {
             return redirect()->route('checkout');
         }
 
         return view('orders.address_form');
     }
 
-    public function storeAddress(Request $request): RedirectResponse
+    public function storeAddress(StoreCheckoutAddressRequest $request): RedirectResponse
     {
-        $checkout = $this->resolveUserCheckout($request, false);
+        $checkout = $this->checkoutService->resolveUserCheckout($request, false);
         if (! $checkout) {
             return redirect()->route('checkout');
         }
 
-        $validated = $request->validate([
-            'label' => ['nullable', 'string', 'max:80'],
-            'recipient_name' => ['required', 'string', 'max:120'],
-            'phone_number' => ['required', 'string', 'max:32'],
-            'street' => ['required', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:255'],
-            'state' => ['required', 'string', 'max:255'],
-            'zipcode' => ['required', 'string', 'max:50'],
-            'is_default' => ['nullable', 'boolean'],
-        ]);
+        $validated = $request->validated();
 
         $address = $checkout->addresses()->create([
             'label' => $validated['label'] ?? 'Alamat',
@@ -227,18 +200,18 @@ class CheckoutController extends Controller
         return redirect()->route('checkout.address')->with('success', 'Alamat pengiriman berhasil disimpan.');
     }
 
-    public function final(Request $request, CartController $cartController): RedirectResponse
+    public function final(FinalizeCheckoutRequest $request): RedirectResponse
     {
-        $cart = $cartController->resolveCart($request);
-        $selectedItems = $this->selectedCartItems($cart);
-        $order = $this->resolveOrder($request, $cart, false);
+        $cart = $this->cartService->resolveCart($request);
+        $selectedItems = $this->cartService->selectedItems($cart);
+        $order = $this->checkoutService->resolveOrder($request, $cart, false);
 
         if (! $order || $selectedItems->isEmpty()) {
             return redirect()->route('cart')->with('info', 'Pilih minimal satu produk di keranjang untuk lanjut checkout.');
         }
 
-        $this->syncOrderSnapshot($order, $cart, $selectedItems);
-        $this->applyCheckoutPaymentSelection($request, $order);
+        $this->checkoutService->syncOrderSnapshot($order, $cart, $selectedItems);
+        $this->checkoutService->applyCheckoutPaymentSelection($request, $order, $request->validated());
         $order->loadMissing(['orderItems', 'shippingAddress', 'userPaymentMethod']);
 
         if (! $order->shipping_address_id) {
@@ -259,54 +232,13 @@ class CheckoutController extends Controller
             return redirect()->route('checkout')->with('danger', 'Login dan atur metode pembayaran dulu sebelum memakai Bayar Sekarang.');
         }
 
-        if ($order->payment_method === 'prepaid' && ! $this->paymentGatewayReady($order)) {
+        if ($order->payment_method === 'prepaid' && ! $this->checkoutService->paymentGatewayReady($order)) {
             return redirect()->route('checkout')->with('danger', 'Gateway pembayaran prepaid belum aktif. Selesaikan dengan COD dulu atau aktifkan gateway pembayaran.');
         }
 
         if (! in_array($order->status, ['paid', 'shipped', 'refunded'], true)) {
             try {
-                DB::transaction(function () use ($order, $cart, $selectedItems) {
-                    $lockedItems = CartItem::query()
-                        ->whereKey($selectedItems->modelKeys())
-                        ->with('item.product.images')
-                        ->get();
-
-                    if ($lockedItems->isEmpty()) {
-                        throw new \RuntimeException('Pilih minimal satu produk di keranjang untuk lanjut checkout.');
-                    }
-
-                    $this->syncOrderSnapshot($order, $cart, $lockedItems);
-
-                    foreach ($lockedItems as $cartItem) {
-                        $variation = $cartItem->item()->lockForUpdate()->first();
-
-                        if (! $variation) {
-                            continue;
-                        }
-
-                        $remainingInventory = (int) ($variation->inventory ?? 0) - (int) $cartItem->quantity;
-
-                        if ($remainingInventory < 0) {
-                            throw new \RuntimeException('Stok untuk varian "' . $variation->title . '" tidak mencukupi.');
-                        }
-
-                        $variation->inventory = $remainingInventory;
-                        $variation->save();
-                    }
-
-                    if (! $order->order_id) {
-                        $order->order_id = 'SSK-' . strtoupper(Str::random(8));
-                    }
-
-                    if ($order->payment_method === 'prepaid') {
-                        $order->markCompleted($order->order_id);
-                    } else {
-                        $order->status = 'created';
-                        $order->save();
-                    }
-
-                    CartItem::query()->whereKey($lockedItems->modelKeys())->delete();
-                });
+                $this->checkoutService->finalizeOrder($order, $cart, $selectedItems);
             } catch (\RuntimeException $exception) {
                 return redirect()->route('checkout')->with('danger', $exception->getMessage());
             }
@@ -321,159 +253,5 @@ class CheckoutController extends Controller
             : 'Pembayaran melalui ' . $order->payment_method_label . ' berhasil diproses dan item terpilih telah dipindahkan dari keranjang.';
 
         return redirect()->route('orders.show', $order)->with('info', $message);
-    }
-
-    protected function selectedCartItems(Cart $cart): Collection
-    {
-        if ($cart->relationLoaded('cartItems')) {
-            return $cart->cartItems
-                ->where('is_selected', true)
-                ->loadMissing('item.product.images')
-                ->values();
-        }
-
-        return $cart->selectedCartItems()->with('item.product.images')->get();
-    }
-
-    protected function syncOrderSnapshot(Order $order, Cart $cart, Collection $selectedItems): void
-    {
-        $order->items_subtotal = round((float) $selectedItems->sum('line_item_total'), 2);
-        $order->items_tax_total = round((float) $order->items_subtotal * (float) $cart->tax_percentage, 2);
-        $order->items_total = round((float) $order->items_subtotal + (float) $order->items_tax_total, 2);
-        $order->save();
-
-        $snapshotPayload = $selectedItems->map(function (CartItem $cartItem) {
-            $variation = $cartItem->relationLoaded('item') ? $cartItem->item : $cartItem->item()->with('product.images')->first();
-            $product = $variation?->product;
-            $unitPrice = (int) $cartItem->quantity > 0
-                ? round((float) $cartItem->line_item_total / (int) $cartItem->quantity, 2)
-                : 0;
-
-            return [
-                'variation_id' => $variation?->id,
-                'product_title' => $product?->title ?: 'Produk',
-                'variation_title' => $variation?->title,
-                'product_image_url' => $product?->image_url,
-                'quantity' => (int) $cartItem->quantity,
-                'unit_price' => $unitPrice,
-                'line_item_total' => (float) $cartItem->line_item_total,
-            ];
-        })->all();
-
-        $order->orderItems()->delete();
-
-        if ($snapshotPayload !== []) {
-            $order->orderItems()->createMany($snapshotPayload);
-        }
-    }
-
-    protected function applyCheckoutPaymentSelection(Request $request, Order $order): void
-    {
-        $validated = $request->validate([
-            'payment_method' => ['nullable', 'in:cod,prepaid'],
-            'user_payment_method_id' => ['nullable', 'integer'],
-        ]);
-
-        $paymentMethod = $validated['payment_method'] ?? $order->payment_method;
-
-        if (! $paymentMethod) {
-            return;
-        }
-
-        if ($paymentMethod === 'cod') {
-            $order->payment_method = 'cod';
-            $order->userPaymentMethod()->dissociate();
-            $order->save();
-
-            return;
-        }
-
-        $user = $request->user();
-        if (! $user) {
-            $order->payment_method = 'prepaid';
-            $order->userPaymentMethod()->dissociate();
-            $order->save();
-
-            return;
-        }
-
-        $selectedPaymentMethod = null;
-
-        if (! empty($validated['user_payment_method_id'])) {
-            $selectedPaymentMethod = $user->paymentMethods()->whereKey($validated['user_payment_method_id'])->first();
-        } elseif ($order->user_payment_method_id) {
-            $selectedPaymentMethod = $user->paymentMethods()->whereKey($order->user_payment_method_id)->first();
-        }
-
-        if (! $selectedPaymentMethod) {
-            $selectedPaymentMethod = $user->paymentMethods()->orderByDesc('is_default')->latest('id')->first();
-        }
-
-        if ($selectedPaymentMethod) {
-            $order->payment_method = 'prepaid';
-            $order->userPaymentMethod()->associate($selectedPaymentMethod);
-        } else {
-            $order->payment_method = 'prepaid';
-            $order->userPaymentMethod()->dissociate();
-        }
-
-        $order->save();
-    }
-
-    protected function resolveUserCheckout(Request $request, bool $persistAuthenticated = true): ?UserCheckout
-    {
-        if ($request->user()) {
-            $userCheckout = UserCheckout::query()->firstOrCreate(
-                ['email' => $request->user()->email],
-                ['user_id' => $request->user()->id]
-            );
-
-            if ($persistAuthenticated) {
-                $userCheckout->user_id = $request->user()->id;
-                $userCheckout->save();
-                $request->session()->put('user_checkout_id', $userCheckout->id);
-            }
-
-            return $userCheckout;
-        }
-
-        $checkoutId = $request->session()->get('user_checkout_id');
-
-        return $checkoutId ? UserCheckout::query()->find($checkoutId) : null;
-    }
-
-    protected function resolveOrder(Request $request, Cart $cart, bool $create = true): ?Order
-    {
-        $orderId = $request->session()->get('order_id');
-        $order = $orderId ? Order::query()->find($orderId) : null;
-
-        if ($order && $order->cart_id === $cart->id && ! in_array($order->status, ['paid', 'shipped', 'refunded'], true)) {
-            return $order;
-        }
-
-        $order = Order::query()
-            ->where('cart_id', $cart->id)
-            ->whereNotIn('status', ['paid', 'shipped', 'refunded'])
-            ->latest('id')
-            ->first();
-
-        if (! $order && $create) {
-            $order = Order::query()->create([
-                'cart_id' => $cart->id,
-                'status' => 'draft',
-                'payment_method' => 'cod',
-            ]);
-        }
-
-        if ($order) {
-            $request->session()->put('order_id', $order->id);
-        }
-
-        return $order;
-    }
-
-    protected function paymentGatewayReady(Order $order): bool
-    {
-        return filled($order->user?->client_token);
     }
 }

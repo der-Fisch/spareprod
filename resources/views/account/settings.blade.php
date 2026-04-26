@@ -355,7 +355,7 @@
                 <h3>Praktik aman</h3>
                 <ul class="account-security-list">
                   <li>Gunakan password minimal 8 karakter.</li>
-                  <li>Pisahkan password akun dengan akses admin/backoffice.</li>
+                  <li>Pisahkan password akun dengan akses admin.</li>
                   <li>Aktifkan pemeriksaan keamanan tambahan bila akun dipakai di lebih dari satu perangkat.</li>
                 </ul>
               </div>

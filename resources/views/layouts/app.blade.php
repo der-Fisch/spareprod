@@ -49,6 +49,10 @@
     <script src="{{ asset('theme/js/bootstrap.min.js') }}"></script>
     <script src="{{ asset('theme/js/ie10-viewport-bug-workaround.js') }}"></script>
     <script src="{{ asset('theme/js/custom.js') }}"></script>
+    <script src="{{ asset('theme/js/layout-shell.js') }}"></script>
+    <script src="{{ asset('theme/js/catalog-page.js') }}"></script>
+    <script src="{{ asset('theme/js/product-detail-page.js') }}"></script>
+    <script src="{{ asset('theme/js/cart-page.js') }}"></script>
     @stack('scripts')
   </body>
 </html>

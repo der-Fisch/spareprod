@@ -11,15 +11,7 @@
     <h4>{{ $product->title }}</h4>
 
     <div class="product-price">
-      @php($firstVariation = $product->variations->first())
-      @if ($firstVariation?->sale_price)
-        <span class="sale-price">{{ $firstVariation->formatted_sale_price }}</span>
-        <span class="og-price">{{ $firstVariation->formatted_price }}</span>
-      @elseif ($firstVariation)
-        {{ $firstVariation->formatted_price }}
-      @else
-        {{ $product->formatted_price }}
-      @endif
+      {{ $product->formatted_price }}
     </div>
   </div>
 </article>

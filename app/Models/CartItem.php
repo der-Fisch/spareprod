@@ -18,10 +18,6 @@ class CartItem extends Model
         'is_selected',
     ];
 
-    protected $appends = [
-        'remove_url',
-    ];
-
     protected function casts(): array
     {
         return [
@@ -38,7 +34,9 @@ class CartItem extends Model
             if ($item->quantity > 0) {
                 $variation = $item->relationLoaded('item') ? $item->item : $item->item()->first();
                 if ($variation) {
-                    $item->line_item_total = round($item->quantity * (float) $variation->price_for_cart, 2);
+                    $product = $variation->relationLoaded('product') ? $variation->product : $variation->product()->first();
+                    $unitPrice = (float) ($product?->price ?? $product?->harga ?? $variation->price_for_cart);
+                    $item->line_item_total = round($item->quantity * $unitPrice, 2);
                 }
             }
         });
@@ -60,11 +58,6 @@ class CartItem extends Model
     public function item(): BelongsTo
     {
         return $this->belongsTo(Variation::class, 'variation_id');
-    }
-
-    public function getRemoveUrlAttribute(): string
-    {
-        return route('cart', ['item' => $this->variation_id, 'qty' => 1, 'delete' => 'True']);
     }
 
     public function getProductImageUrlAttribute(): string

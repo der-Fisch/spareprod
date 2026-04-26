@@ -10,6 +10,7 @@
   </section>
 
   <div class="cart-shell">
+    <template id="cart-empty-state-template">{!! view('carts.empty_cart')->render() !!}</template>
     @if ($object->cartItems->count() < 1)
       @include('carts.empty_cart')
     @else
@@ -61,20 +62,28 @@
 
                 <div class="cart-item-copy">
                   <h3>{{ $item->item->product->title }}</h3>
-                  <p>{{ $item->item->title }}</p>
                   <div class="cart-item-meta">
                     <span class="account-badge">{{ $item->item->product->brand_name ?: 'Spare Part' }}</span>
-                    <span class="cart-unit-price">{{ $item->item->formatted_effective_price }} / item</span>
+                    <span class="cart-unit-price">{{ rupiah_catalog($item->quantity > 0 ? ($item->line_item_total / $item->quantity) : 0) }} / item</span>
                   </div>
                 </div>
 
                 <div class="cart-item-side">
                   <strong id="item-line-total-{{ $item->id }}">{{ rupiah_catalog($item->line_item_total) }}</strong>
                   <div class="cart-item-actions">
-                    <a href="{{ $item->remove_url }}" class="cart-remove-link">Hapus</a>
-                    <form action="." method="GET" class="cart-qty-form">
-                      <input type="hidden" name="item" value="{{ $item->variation_id }}">
-                      <input type="number" class="item-qty form-control" data-cart-item-id="{{ $item->id }}" name="qty" value="{{ $item->quantity }}" min="0">
+                    <button
+                      type="button"
+                      class="cart-remove-link cart-remove-button"
+                      data-cart-item-delete
+                      data-delete-action="{{ route('cart.items.destroy', $item) }}"
+                      data-cart-item-id="{{ $item->id }}"
+                    >
+                      Hapus
+                    </button>
+                    <form action="{{ route('cart.items.update', $item) }}" method="POST" class="cart-qty-form" data-cart-qty-form>
+                      @csrf
+                      @method('PATCH')
+                      <input type="number" class="item-qty form-control" data-cart-item-id="{{ $item->id }}" name="quantity" value="{{ $item->quantity }}" min="0">
                     </form>
                   </div>
                 </div>
@@ -118,161 +127,3 @@
     @endif
   </div>
 @endsection
-
-@push('scripts')
-  <script>
-    (function ($) {
-      function csrfToken() {
-        return $('meta[name="csrf-token"]').attr('content');
-      }
-
-      function selectedItemIdsFrom(selector) {
-        return $(selector).map(function () {
-          return $(this).data('cart-item-id');
-        }).get();
-      }
-
-      function updateBrandCheckboxes() {
-        $('[data-brand-card]').each(function () {
-          var card = $(this);
-          var itemCheckboxes = card.find('.cart-item-selector');
-          var checkedCount = itemCheckboxes.filter(':checked').length;
-          card.find('.cart-brand-selector').prop('checked', checkedCount > 0 && checkedCount === itemCheckboxes.length);
-        });
-      }
-
-      function updateSummaryUi(response) {
-        $('#cart-selected-count').text(response.selected_count || 0);
-        $('#cart-selected-subtotal').text(formatCatalogRupiah(response.selected_subtotal));
-        $('#cart-selected-tax').text(formatCatalogRupiah(response.selected_tax_total));
-        $('#cart-selected-total').text(formatCatalogRupiah(response.selected_total));
-        $('#cart-select-all').prop('checked', !!response.all_selected);
-        $('#remove-selected-form button').prop('disabled', (response.selected_count || 0) < 1);
-        $('#cart-checkout-button')
-          .prop('disabled', (response.selected_count || 0) < 1)
-          .text('Beli (' + (response.selected_count || 0) + ')');
-        updateBrandCheckboxes();
-      }
-
-      function removeEmptyGroups() {
-        $('[data-brand-card]').each(function () {
-          if (!$(this).find('[data-cart-item-row]').length) {
-            $(this).remove();
-          }
-        });
-      }
-
-      function showCartEmptyState() {
-        $('#cart-main-content').html(@json(view('carts.empty_cart')->render()));
-        $('.cart-summary-panel').remove();
-      }
-
-      function postSelection(itemIds, selected) {
-        return $.ajax({
-          type: 'POST',
-          url: "{{ route('cart.selection') }}",
-          data: {
-            _token: csrfToken(),
-            selected: selected ? 1 : 0,
-            cart_item_ids: itemIds
-          },
-          headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-      }
-
-      $(document).on('change', '.item-qty', function () {
-        var input = $(this);
-        var item = input.closest('form').find("input[name='item']").val();
-        var qty = input.val();
-        var cartItemId = input.data('cart-item-id');
-
-        $.ajax({
-          type: 'GET',
-          url: "{{ route('cart') }}",
-          data: { item: item, qty: qty },
-          headers: { 'X-Requested-With': 'XMLHttpRequest' },
-          success: function (data) {
-            if (data.deleted && data.removed_item_id) {
-              $('#cart-item-' + data.removed_item_id).remove();
-              removeEmptyGroups();
-            } else {
-              $('#item-line-total-' + cartItemId).text(formatCatalogRupiah(data.line_total));
-            }
-
-            updateSummaryUi(data);
-
-            if ((data.total_items || 0) === 0) {
-              showCartEmptyState();
-            }
-
-            showFlashMessage(data.flash_message || 'Item updated');
-            updateCartItemCount();
-          },
-          error: function () {
-            window.location.href = "{{ route('cart') }}?item=" + item + "&qty=" + qty;
-          }
-        });
-      });
-
-      $(document).on('change', '.cart-item-selector', function () {
-        var checkbox = $(this);
-
-        postSelection([checkbox.data('cart-item-id')], checkbox.is(':checked'))
-          .done(function (response) {
-            updateSummaryUi(response);
-          });
-      });
-
-      $(document).on('change', '.cart-brand-selector', function () {
-        var checkbox = $(this);
-        var ids = String(checkbox.data('cart-item-ids')).split(',').filter(Boolean);
-
-        postSelection(ids, checkbox.is(':checked'))
-          .done(function (response) {
-            ids.forEach(function (id) {
-              $('.cart-item-selector[data-cart-item-id="' + id + '"]').prop('checked', checkbox.is(':checked'));
-            });
-            updateSummaryUi(response);
-          });
-      });
-
-      $(document).on('change', '#cart-select-all', function () {
-        var checkbox = $(this);
-        var ids = selectedItemIdsFrom('.cart-item-selector');
-
-        postSelection(ids, checkbox.is(':checked'))
-          .done(function (response) {
-            $('.cart-item-selector, .cart-brand-selector').prop('checked', checkbox.is(':checked'));
-            updateSummaryUi(response);
-          });
-      });
-
-      $(document).on('submit', '#remove-selected-form', function (event) {
-        event.preventDefault();
-
-        $.ajax({
-          type: 'POST',
-          url: "{{ route('cart.remove_selected') }}",
-          data: {
-            _token: csrfToken()
-          },
-          headers: { 'X-Requested-With': 'XMLHttpRequest' },
-          success: function (response) {
-            $('.cart-item-selector:checked').each(function () {
-              $('#cart-item-' + $(this).data('cart-item-id')).remove();
-            });
-            removeEmptyGroups();
-            updateSummaryUi(response);
-
-            if ((response.total_items || 0) === 0) {
-              showCartEmptyState();
-            }
-
-            showFlashMessage(response.flash_message || 'Item terpilih berhasil dihapus.');
-            updateCartItemCount();
-          }
-        });
-      });
-    })(jQuery);
-  </script>
-@endpush

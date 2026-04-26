@@ -10,14 +10,14 @@ class HomeController extends Controller
     {
         $products = Product::query()
             ->active()
-            ->with(['defaultCategory', 'variations', 'compatibilities', 'specifications', 'images'])
+            ->with(['defaultCategory', 'compatibilities', 'specifications', 'images'])
             ->inRandomOrder()
             ->take(3)
             ->get();
 
         $featuredProduct = Product::query()
             ->active()
-            ->with(['defaultCategory', 'variations', 'compatibilities', 'specifications', 'images'])
+            ->with(['defaultCategory', 'compatibilities', 'specifications', 'images'])
             ->inRandomOrder()
             ->first();
 

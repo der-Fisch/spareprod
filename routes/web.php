@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\Account\AccountSettingsController;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Backoffice\BackofficeController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
@@ -16,6 +16,9 @@ Route::middleware('redirect_staff_to_backoffice')->group(function () {
     Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 
     Route::get('/cart', [CartController::class, 'index'])->name('cart');
+    Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');
+    Route::patch('/cart/items/{cartItem}', [CartController::class, 'update'])->name('cart.items.update');
+    Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy'])->name('cart.items.destroy');
     Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
     Route::post('/cart/selection', [CartController::class, 'updateSelection'])->name('cart.selection');
     Route::post('/cart/remove-selected', [CartController::class, 'removeSelected'])->name('cart.remove_selected');
@@ -49,10 +52,10 @@ Route::middleware(['auth', 'redirect_staff_to_backoffice'])->group(function () {
 });
 
 Route::prefix('backoffice')->name('backoffice.')->middleware('auth')->group(function () {
-    Route::get('/', [BackofficeController::class, 'dashboard'])->name('dashboard');
-    Route::get('/{entity}', [BackofficeController::class, 'index'])->name('entity.list');
-    Route::get('/{entity}/{mode}', [BackofficeController::class, 'modal'])->name('entity.modal.create');
-    Route::post('/{entity}/{mode}', [BackofficeController::class, 'save'])->name('entity.modal.create.store');
-    Route::get('/{entity}/{pk}/{mode}', [BackofficeController::class, 'modal'])->name('entity.modal');
-    Route::post('/{entity}/{pk}/{mode}', [BackofficeController::class, 'save'])->name('entity.modal.store');
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/{entity}', [AdminController::class, 'index'])->name('entity.list');
+    Route::get('/{entity}/{mode}', [AdminController::class, 'modal'])->name('entity.modal.create');
+    Route::post('/{entity}/{mode}', [AdminController::class, 'save'])->name('entity.modal.create.store');
+    Route::get('/{entity}/{pk}/{mode}', [AdminController::class, 'modal'])->name('entity.modal');
+    Route::post('/{entity}/{pk}/{mode}', [AdminController::class, 'save'])->name('entity.modal.store');
 });

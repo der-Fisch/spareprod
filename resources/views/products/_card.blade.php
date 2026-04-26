@@ -19,17 +19,9 @@
 
     <div class="product-card-footer">
       <div class="product-price">
-        @php($firstVariation = $product->variations->first())
-        @if ($firstVariation?->sale_price)
-          <span class="sale-price">{{ $firstVariation->formatted_sale_price }}</span>
-          <span class="og-price">{{ $firstVariation->formatted_price }}</span>
-        @elseif ($firstVariation)
-          {{ $firstVariation->formatted_price }}
-        @else
-          {{ $product->formatted_price }}
-        @endif
+        {{ $product->formatted_price }}
       </div>
-      <a href="{{ $cardUrl }}" class="btn btn-outline">View Details</a>
+      <a href="{{ $cardUrl }}" class="btn btn-outline">Lihat Detail</a>
     </div>
   </div>
 </article>

@@ -9,17 +9,17 @@
       <span class="nav-user-avatar">{{ avatar_initials(auth()->user()) }}</span>
       <span class="nav-user-copy">
         <strong>{{ auth()->user()->username }}</strong>
-        <small>Admin Workspace</small>
+        <small>Panel Admin</small>
       </span>
       <span class="caret"></span>
     </a>
     <ul class="dropdown-menu dropdown-menu-right">
-      <li><a href="{{ route('account.settings') }}">Settings</a></li>
+      <li><a href="{{ route('account.settings') }}">Pengaturan</a></li>
       <li class="divider"></li>
       <li>
         <form method="POST" action="{{ route('logout') }}">
           @csrf
-          <button type="submit" class="btn btn-link">Log out</button>
+          <button type="submit" class="btn btn-link">Keluar</button>
         </form>
       </li>
     </ul>

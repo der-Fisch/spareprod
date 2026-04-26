@@ -64,16 +64,10 @@
             </thead>
             <tbody>
               @foreach ($order->presentedItems() as $item)
-                @php
-                  $productTitle = $item->product_title ?? $item->item?->product?->title ?? 'Produk';
-                  $variationTitle = $item->variation_title ?? $item->item?->title ?? null;
-                @endphp
+                @php($productTitle = $item->product_title ?? $item->item?->product?->title ?? 'Produk')
                 <tr>
                   <td>
                     <strong>{{ $productTitle }}</strong>
-                    @if ($variationTitle)
-                      <div class="text-muted">{{ $variationTitle }}</div>
-                    @endif
                   </td>
                   <td class="text-center">{{ $item->quantity }}</td>
                   <td class="text-right">{{ rupiah_catalog($item->line_item_total) }}</td>

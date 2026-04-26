@@ -12,7 +12,7 @@
         <h1>Spare part kendaraan yang tampil profesional, cepat dicari, dan siap dibeli.</h1>
         <p>Spare Soko menggabungkan katalog spare part, kategori yang rapi, dan storefront yang profesional untuk pengalaman belanja yang lebih meyakinkan.</p>
         <div class="landing-actions">
-          <a href="{{ $browseUrl }}" class="btn btn-primary btn-lg">Browse Products</a>
+          <a href="{{ $browseUrl }}" class="btn btn-primary btn-lg">Jelajahi Produk</a>
           <a href="#catalog-preview" class="btn btn-ghost btn-lg" data-scroll-target="catalog-preview">Explore Preview</a>
         </div>
       </div>

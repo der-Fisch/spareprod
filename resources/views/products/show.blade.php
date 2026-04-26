@@ -6,7 +6,6 @@
   <div class="row product-detail-layout">
     <div class="col-md-7">
       @php($galleryImages = $product->images->isNotEmpty() ? $product->images : collect([(object) ['image_url' => $product->image_url, 'alt_text' => $product->title]]))
-      @php($firstVariation = $product->variations->first())
       @php($hasSkuData = filled($product->sku) || filled($product->oem_number))
       @php($hasBrandData = filled($product->brand_name) || filled($product->brand_type))
       @php($hasTechnicalSpecs = !empty($product->technical_specs))
@@ -85,10 +84,6 @@
                       <span class="product-micro-label">Kategori</span>
                       <strong>{{ $product->defaultCategory?->title ?? 'Umum' }}</strong>
                     </div>
-                    <div class="product-micro-item">
-                      <span class="product-micro-label">Varian</span>
-                      <strong>{{ $product->variations->count() }} pilihan</strong>
-                    </div>
                   </div>
                 </section>
               @endif
@@ -122,8 +117,8 @@
             <section class="product-overview-panel">
               <span class="product-section-label">Ketersediaan Stok</span>
               <div class="product-summary-item">
-                <strong id="detail-stock-display">{{ $firstVariation?->stock_display_label ?? $product->stock_display_label }}</strong>
-                <span id="detail-stock-badge" class="product-chip {{ $firstVariation?->stock_badge_class ?? $product->stock_badge_class }}">{{ $firstVariation?->stock_badge_label ?? $product->stock_badge_label }}</span>
+                <strong>{{ $product->stock_display_label }}</strong>
+                <span class="product-chip {{ $product->stock_badge_class }}">{{ $product->stock_badge_label }}</span>
               </div>
             </section>
 
@@ -144,64 +139,44 @@
       <div class="purchase-card">
         <div class="purchase-card-header">
           <span class="eyebrow">Purchase Panel</span>
-          <h3>Ready to add this part?</h3>
+          <h3>Siap menambahkan produk ini?</h3>
         </div>
 
-        <form id="add-form" method="GET" action="{{ route('cart') }}">
-          <p id="jquery-message" class="lead"></p>
+        <form
+          id="add-form"
+          method="POST"
+          action="{{ route('cart.items.store') }}"
+          data-cart-add-form
+        >
+          @csrf
           <div class="purchase-price" id="price">
-            @if ($firstVariation?->sale_price)
-              <span class="sale-price">{{ $firstVariation->formatted_sale_price }}</span>
-              <span class="og-price">{{ $firstVariation->formatted_price }}</span>
-            @elseif ($firstVariation)
-              {{ $firstVariation->formatted_price }}
-            @else
-              {{ $product->formatted_price }}
-            @endif
+            {{ $product->formatted_price }}
           </div>
 
-          @if ($product->variations->count() > 1)
-            <label class="field-label" for="variation-select">Variation</label>
-            <select id="variation-select" name="item" class="form-control variation_select">
-              @foreach ($product->variations as $variation)
-                <option
-                  value="{{ $variation->id }}"
-                  data-sale-price-formatted="{{ $variation->formatted_sale_price }}"
-                  data-price-formatted="{{ $variation->formatted_price }}"
-                  data-stock-display-label="{{ $variation->stock_display_label }}"
-                  data-stock-badge-label="{{ $variation->stock_badge_label }}"
-                  data-stock-badge-class="{{ $variation->stock_badge_class }}"
-                  data-inventory="{{ $variation->inventory }}"
-                >
-                  {{ $variation->title }}
-                </option>
-              @endforeach
-            </select>
-          @elseif ($firstVariation)
-            <input type="hidden" name="item" value="{{ $firstVariation->id }}">
-            <div class="variant-badge">{{ $firstVariation->title }}</div>
+          @if ($cartItemId)
+            <input type="hidden" name="variation_id" value="{{ $cartItemId }}">
           @endif
 
           <div class="variant-stock-note">
-            <span class="product-micro-label">Stok Varian</span>
+            <span class="product-micro-label">Stok Produk</span>
             <div class="variant-stock-copy">
-              <strong id="variant-stock-display">{{ $firstVariation?->stock_display_label ?? $product->stock_display_label }}</strong>
-              <span id="variant-stock-badge" class="product-chip {{ $firstVariation?->stock_badge_class ?? $product->stock_badge_class }}">{{ $firstVariation?->stock_badge_label ?? $product->stock_badge_label }}</span>
+              <strong>{{ $product->stock_display_label }}</strong>
+              <span class="product-chip {{ $product->stock_badge_class }}">{{ $product->stock_badge_label }}</span>
             </div>
           </div>
 
-          <label class="field-label" for="qty-input">Quantity</label>
-          <input id="qty-input" class="form-control" type="number" name="qty" value="1" min="1">
+          <label class="field-label" for="qty-input">Jumlah</label>
+          <input id="qty-input" class="form-control" type="number" name="quantity" value="1" min="1">
 
           <div class="purchase-actions">
-            <button id="submit-btn" type="submit" class="btn btn-primary btn-block">Add to Cart</button>
-            <a href="{{ route('products.index') }}" class="btn btn-secondary btn-block">Back to Catalog</a>
+            <button id="submit-btn" type="submit" class="btn btn-primary btn-block" @disabled(! $cartItemId)>Tambah ke Keranjang</button>
+            <a href="{{ route('products.index') }}" class="btn btn-secondary btn-block">Kembali ke Katalog</a>
           </div>
         </form>
 
         <div class="purchase-note">
           <i class="fa fa-shield"></i>
-          Pastikan SKU, OEM, dan varian yang dipilih sudah sesuai sebelum checkout.
+          Pastikan SKU, OEM, dan jumlah produk sudah sesuai sebelum checkout.
         </div>
       </div>
 
@@ -236,97 +211,3 @@
     </div>
   </div>
 @endsection
-
-@push('scripts')
-  <script>
-    (function ($) {
-      function setStock() {
-        var selectedOption = $(".variation_select option:selected");
-        if (!selectedOption.length) {
-          return;
-        }
-
-        var stockDisplay = selectedOption.attr("data-stock-display-label");
-        var stockBadgeLabel = selectedOption.attr("data-stock-badge-label");
-        var stockBadgeClass = selectedOption.attr("data-stock-badge-class");
-
-        $("#detail-stock-display, #variant-stock-display").text(stockDisplay);
-        $("#detail-stock-badge, #variant-stock-badge")
-          .text(stockBadgeLabel)
-          .removeClass("product-chip-stock-ok product-chip-stock-low product-chip-stock-out")
-          .addClass(stockBadgeClass);
-      }
-
-      function setPrice() {
-        var selectedOption = $(".variation_select option:selected");
-        var price = selectedOption.attr("data-price-formatted");
-        var salePrice = selectedOption.attr("data-sale-price-formatted");
-
-        if (salePrice && salePrice !== "null") {
-          $("#price").html("<span class='sale-price'>" + salePrice + "</span> <span class='og-price'>" + price + "</span>");
-        } else {
-          $("#price").html(price);
-        }
-      }
-
-      function setupGallery() {
-        var gallery = $("[data-product-gallery]");
-        if (!gallery.length) {
-          return;
-        }
-
-        var slides = gallery.find("[data-gallery-slide]");
-        if (slides.length <= 1) {
-          return;
-        }
-
-        var activeIndex = 0;
-
-        function renderGallery(index) {
-          activeIndex = (index + slides.length) % slides.length;
-          slides.removeClass("is-active").eq(activeIndex).addClass("is-active");
-        }
-
-        gallery.on("click", "[data-gallery-prev]", function () {
-          renderGallery(activeIndex - 1);
-        });
-
-        gallery.on("click", "[data-gallery-next]", function () {
-          renderGallery(activeIndex + 1);
-        });
-      }
-
-      $(document).ready(function () {
-        setupGallery();
-        setPrice();
-        setStock();
-
-        $(".variation_select").on("change", function () {
-          setPrice();
-          setStock();
-        });
-
-        $("#submit-btn").on("click", function (event) {
-          event.preventDefault();
-          var formData = $("#add-form").serialize();
-
-          $.ajax({
-            type: "GET",
-            url: "{{ route('cart') }}",
-            data: formData,
-            headers: {
-              "X-Requested-With": "XMLHttpRequest"
-            },
-            success: function (data) {
-              updateCartItemCount();
-              showCartSuccessAlert(data.flash_message || "Produk berhasil ditambahkan ke cart.");
-            },
-            error: function () {
-              $("#add-form").trigger("submit");
-            }
-          });
-        });
-      });
-    })(jQuery);
-  </script>
-@endpush

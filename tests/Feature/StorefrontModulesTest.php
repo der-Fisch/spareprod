@@ -28,7 +28,10 @@ class StorefrontModulesTest extends TestCase
         $this->seed(DemoCatalogSeeder::class);
         $variation = Variation::query()->firstOrFail();
 
-        $response = $this->get('/cart?item=' . $variation->id . '&qty=1', [
+        $response = $this->post('/cart/items', [
+            'variation_id' => $variation->id,
+            'quantity' => 1,
+        ], [
             'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
@@ -58,7 +61,31 @@ class StorefrontModulesTest extends TestCase
         $response = $this->actingAs($admin)->get('/settings');
 
         $response->assertOk();
-        $response->assertSee('Account Settings', false);
+        $response->assertSee('Admin Settings', false);
+        $response->assertSee('Kelola identitas login admin.', false);
+        $response->assertDontSee('Daftar Alamat', false);
+        $response->assertDontSee('Pembayaran', false);
+    }
+
+    public function test_staff_user_can_update_admin_specific_settings(): void
+    {
+        $this->seedStore();
+        $admin = User::query()->where('username', 'admin')->firstOrFail();
+
+        $response = $this->actingAs($admin)->post('/settings', [
+            'action' => 'profile',
+            'username' => 'admin_ops',
+            'email' => 'admin.ops@sparesoko.test',
+            'whatsapp_number' => '081200001111',
+        ]);
+
+        $response->assertRedirect('/settings');
+
+        $admin->refresh();
+
+        $this->assertSame('admin_ops', $admin->username);
+        $this->assertSame('admin.ops@sparesoko.test', $admin->email);
+        $this->assertSame('081200001111', $admin->accountProfile->fresh()->whatsapp_number);
     }
 
     public function test_guest_checkout_session_can_view_order_detail(): void
@@ -139,6 +166,7 @@ class StorefrontModulesTest extends TestCase
                 'warranty_label' => 'Garansi Admin 14 Hari',
                 'rating' => '4.2',
                 'price' => '14.50',
+                'stok' => '9',
                 'default_category_id' => (string) $product->default_category_id,
                 'categories' => [(string) $product->default_category_id],
                 'compatibility_entries' => [
@@ -148,10 +176,6 @@ class StorefrontModulesTest extends TestCase
                 'specification_entries' => [
                     ['label' => 'Bahan', 'value' => 'Aluminium'],
                     ['label' => 'Tegangan', 'value' => '12V'],
-                ],
-                'variation_entries' => [
-                    ['title' => 'Positive Clamp', 'price' => '14.50', 'sale_price' => '', 'inventory' => '9'],
-                    ['title' => 'Negative Clamp', 'price' => '15.00', 'sale_price' => '13.50', 'inventory' => '5'],
                 ],
                 'image_entries' => [
                     ['image_path' => 'theme/img/products/battery-terminal-clamp.jpg', 'alt_text' => 'Clamp utama'],
@@ -166,13 +190,12 @@ class StorefrontModulesTest extends TestCase
         $response->assertJson(['success' => true]);
 
         $product->refresh();
-        $updatedVariation = Variation::query()->where('product_id', $product->id)->where('title', 'Negative Clamp')->firstOrFail();
 
         $this->assertSame('BTC-NEW-777', $product->sku);
         $this->assertSame('Bosch Update', $product->brand_name);
         $this->assertSame('Aftermarket', $product->brand_type);
         $this->assertSame('Garansi Admin 14 Hari', $product->warranty_label);
-        $this->assertSame(5, $updatedVariation->inventory);
+        $this->assertSame(9, $product->stok);
         $this->assertDatabaseHas('product_compatibilities', [
             'product_id' => $product->id,
             'vehicle_name' => 'Suzuki Ertiga',
@@ -273,15 +296,18 @@ class StorefrontModulesTest extends TestCase
 
         $this->assertGreaterThanOrEqual(2, $cartItems->count());
 
-        $firstVariation = Variation::query()->findOrFail($cartItems[0]->variation_id);
-        $secondVariation = Variation::query()->findOrFail($cartItems[1]->variation_id);
-        $untouchedVariation = Variation::query()
-            ->whereNotIn('id', [$firstVariation->id, $secondVariation->id])
-            ->firstOrFail();
+        $expectedReductions = $cartItems
+            ->groupBy(fn ($item) => $item->item->product_id)
+            ->map(fn ($items) => $items->sum('quantity'));
 
-        $firstBefore = $firstVariation->inventory;
-        $secondBefore = $secondVariation->inventory;
-        $untouchedBefore = $untouchedVariation->inventory;
+        $beforeStocks = Product::query()
+            ->whereIn('id', $expectedReductions->keys())
+            ->pluck('stok', 'id');
+
+        $untouchedProduct = Product::query()
+            ->whereNotIn('id', $expectedReductions->keys())
+            ->firstOrFail();
+        $untouchedBefore = $untouchedProduct->stok;
 
         $response = $this->actingAs($customer)
             ->withSession([
@@ -294,9 +320,13 @@ class StorefrontModulesTest extends TestCase
         $response->assertRedirect('/orders/' . $order->id);
 
         $this->assertSame('created', $order->fresh()->status);
-        $this->assertSame($firstBefore - $cartItems[0]->quantity, $firstVariation->fresh()->inventory);
-        $this->assertSame($secondBefore - $cartItems[1]->quantity, $secondVariation->fresh()->inventory);
-        $this->assertSame($untouchedBefore, $untouchedVariation->fresh()->inventory);
+        foreach ($expectedReductions as $productId => $reduction) {
+            $this->assertSame(
+                (int) $beforeStocks[$productId] - (int) $reduction,
+                Product::query()->findOrFail($productId)->stok
+            );
+        }
+        $this->assertSame($untouchedBefore, $untouchedProduct->fresh()->stok);
     }
 
     public function test_cod_checkout_creates_order_without_marking_it_paid(): void
@@ -307,8 +337,12 @@ class StorefrontModulesTest extends TestCase
         $order->update(['payment_method' => 'cod']);
 
         $cartItems = $order->cart->cartItems->values();
-        $variation = Variation::query()->findOrFail($cartItems[0]->variation_id);
-        $before = $variation->inventory;
+        $productId = $cartItems[0]->item->product_id;
+        $expectedReduction = (int) $cartItems
+            ->filter(fn ($item) => $item->item->product_id === $productId)
+            ->sum('quantity');
+        $product = Product::query()->findOrFail($productId);
+        $before = $product->stok;
 
         $response = $this->actingAs($customer)
             ->withSession([
@@ -322,7 +356,7 @@ class StorefrontModulesTest extends TestCase
 
         $this->assertSame('cod', $order->fresh()->payment_method);
         $this->assertSame('created', $order->fresh()->status);
-        $this->assertSame($before - $cartItems[0]->quantity, $variation->fresh()->inventory);
+        $this->assertSame($before - $expectedReduction, $product->fresh()->stok);
     }
 
     public function test_prepaid_checkout_requires_payment_gateway_when_not_available(): void
@@ -332,8 +366,8 @@ class StorefrontModulesTest extends TestCase
         $order = Order::query()->with('cart.cartItems.item')->firstOrFail();
         $order->update(['payment_method' => 'prepaid']);
 
-        $variation = Variation::query()->findOrFail($order->cart->cartItems->firstOrFail()->variation_id);
-        $before = $variation->inventory;
+        $product = Product::query()->findOrFail($order->cart->cartItems->firstOrFail()->item->product_id);
+        $before = $product->stok;
 
         $response = $this->actingAs($customer)
             ->withSession([
@@ -345,6 +379,6 @@ class StorefrontModulesTest extends TestCase
 
         $response->assertRedirect('/checkout');
         $this->assertSame('created', $order->fresh()->status);
-        $this->assertSame($before, $variation->fresh()->inventory);
+        $this->assertSame($before, $product->fresh()->stok);
     }
 }

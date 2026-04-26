@@ -80,13 +80,13 @@
           @if ($products->onFirstPage())
             <span></span>
           @else
-            <a href="{{ $products->previousPageUrl() }}" class="pagination-link">Previous</a>
+            <a href="{{ $products->previousPageUrl() }}" class="pagination-link" data-catalog-page>Sebelumnya</a>
           @endif
 
-          <span class="pagination-status">Page {{ $products->currentPage() }} of {{ $products->lastPage() }}</span>
+          <span class="pagination-status">Halaman {{ $products->currentPage() }} dari {{ $products->lastPage() }}</span>
 
           @if ($products->hasMorePages())
-            <a href="{{ $products->nextPageUrl() }}" class="pagination-link">Next</a>
+            <a href="{{ $products->nextPageUrl() }}" class="pagination-link" data-catalog-page>Berikutnya</a>
           @else
             <span></span>
           @endif
