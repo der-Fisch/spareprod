@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-class BackofficeEntityService
+class AdminEntityService
 {
     public function persist(string $entity, array $data, mixed $object): void
     {
@@ -30,9 +30,14 @@ class BackofficeEntityService
     protected function persistCategory(array $data, ?Category $category): void
     {
         $category ??= new Category();
+        $slug = $this->generateUniqueCategorySlug(
+            (string) $data['title'],
+            $category->exists ? (int) $category->id : null,
+        );
+
         $category->fill([
             'title' => $data['title'],
-            'slug' => $data['slug'],
+            'slug' => $slug,
             'description' => $data['description'] ?? null,
             'active' => (bool) ($data['active'] ?? false),
         ]);
@@ -42,6 +47,10 @@ class BackofficeEntityService
     protected function persistProduct(array $data, ?Product $product): void
     {
         $product ??= new Product();
+        $categoryId = filled($data['category_id'] ?? null)
+            ? (int) $data['category_id']
+            : null;
+
         $product->fill([
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
@@ -52,12 +61,12 @@ class BackofficeEntityService
             'warranty_label' => $data['warranty_label'] ?? null,
             'price' => $data['price'],
             'stok' => $data['stok'],
-            'default_category_id' => $data['default_category_id'] ?? null,
+            'default_category_id' => $categoryId,
             'active' => (bool) ($data['active'] ?? false),
         ]);
         $product->save();
 
-        $product->categories()->sync($data['categories'] ?? []);
+        $product->categories()->sync($categoryId ? [$categoryId] : []);
         $this->syncProductCompatibilities($product, $data['compatibility_entries'] ?? []);
         $this->syncProductSpecifications($product, $data['specification_entries'] ?? []);
         $this->syncProductImages($product, $data['image_entries'] ?? []);
@@ -184,5 +193,24 @@ class BackofficeEntityService
         $file->move($directory, $filename);
 
         return 'uploads/products/' . $filename;
+    }
+
+    protected function generateUniqueCategorySlug(string $title, ?int $ignoreId = null): string
+    {
+        $baseSlug = Str::slug($title) ?: 'kategori';
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while (
+            Category::query()
+                ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
+                ->where('slug', $slug)
+                ->exists()
+        ) {
+            $slug = $baseSlug . '-' . $suffix;
+            $suffix++;
+        }
+
+        return $slug;
     }
 }

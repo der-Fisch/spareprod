@@ -25,9 +25,9 @@
   --radius-md: 18px;
   --radius-sm: 14px;
   --sidebar-width: 252px;
-  --backoffice-sidebar-width: 214px;
+  --admin-sidebar-width: 214px;
   --public-max-width: 1240px;
-  --backoffice-max-width: 1460px;
+  --admin-max-width: 1460px;
 }
 
 html,
@@ -64,7 +64,7 @@ h5,
 .page-hero h1,
 .landing-copy h1,
 .section-heading h2,
-.backoffice-hero h1,
+.admin-hero h1,
 .panel-toolbar h2 {
   font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
   letter-spacing: 0.02em;
@@ -87,7 +87,7 @@ a:focus {
 }
 
 .public-shell,
-.backoffice-shell {
+.admin-shell {
   min-height: 100vh;
 }
 
@@ -104,7 +104,7 @@ a:focus {
 }
 
 .public-flash-stack,
-.backoffice-flash-stack {
+.admin-flash-stack {
   max-width: 1240px;
   margin: 0 auto 20px;
 }
@@ -140,8 +140,8 @@ a:focus {
   margin: 0 auto;
 }
 
-.backoffice-content {
-  max-width: var(--backoffice-max-width);
+.admin-content {
+  max-width: var(--admin-max-width);
   margin: 0 auto;
 }
 
@@ -258,13 +258,13 @@ a:focus {
 }
 
 .nav-search-form,
-.backoffice-search-form {
+.admin-search-form {
   position: relative;
   width: 100%;
 }
 
 .nav-search-form i,
-.backoffice-search-form i {
+.admin-search-form i {
   position: absolute;
   top: 50%;
   left: 18px;
@@ -273,7 +273,7 @@ a:focus {
 }
 
 .nav-search-form input,
-.backoffice-search-form input {
+.admin-search-form input {
   width: 100%;
   height: 48px;
   padding: 12px 18px 12px 48px;
@@ -386,7 +386,7 @@ a:focus {
   color: var(--primary);
 }
 
-.backoffice-topbar-user .dropdown-menu {
+.admin-topbar-user .dropdown-menu {
   margin-top: 0 !important;
 }
 
@@ -406,26 +406,26 @@ a:focus {
 }
 
 .public-sidebar-header,
-.backoffice-sidebar-header {
+.admin-sidebar-header {
   padding: 4px 8px 14px;
   border-bottom: 1px solid rgba(183, 204, 230, 0.65);
   margin-bottom: 14px;
 }
 
-.backoffice-sidebar-subtitle {
+.admin-sidebar-subtitle {
   margin: 14px 0 0;
   color: var(--text-soft);
   font-size: 13px;
 }
 
 .public-sidebar-nav,
-.backoffice-nav {
+.admin-nav {
   display: grid;
   gap: 8px;
 }
 
 .public-sidebar-link,
-.backoffice-nav-link {
+.admin-nav-link {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -436,7 +436,7 @@ a:focus {
 }
 
 .public-sidebar-link i,
-.backoffice-nav-link i {
+.admin-nav-link i {
   width: 18px;
   text-align: center;
   color: var(--primary);
@@ -444,8 +444,8 @@ a:focus {
 
 .public-sidebar-link.is-active,
 .public-sidebar-link:hover,
-.backoffice-nav-link.is-active,
-.backoffice-nav-link:hover {
+.admin-nav-link.is-active,
+.admin-nav-link:hover {
   background: var(--primary-soft);
   color: var(--primary);
 }
@@ -467,7 +467,7 @@ body.public-sidebar-open .public-sidebar-backdrop {
   display: block;
 }
 
-.backoffice-sidebar-backdrop {
+.admin-sidebar-backdrop {
   position: fixed;
   inset: 0;
   z-index: 1015;
@@ -486,7 +486,7 @@ body.public-sidebar-open .public-sidebar-backdrop {
 .landing-shell,
 .section-shell,
 .layout-grid,
-.backoffice-content {
+.admin-content {
   width: 100%;
 }
 
@@ -500,7 +500,7 @@ body.public-sidebar-open .public-sidebar-backdrop {
 
 .landing-grid,
 .vision-layout,
-.backoffice-dashboard-grid {
+.admin-dashboard-grid {
   display: grid;
   gap: 24px;
 }
@@ -531,9 +531,9 @@ body.public-sidebar-open .public-sidebar-backdrop {
 .auth-card,
 .category-card,
 .empty-state-card,
-.backoffice-hero,
+.admin-hero,
 .kpi-card,
-.backoffice-panel,
+.admin-panel,
 .summary-mini-card {
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(183, 204, 230, 0.62);
@@ -558,8 +558,8 @@ body.public-sidebar-open .public-sidebar-backdrop {
 
 .landing-copy h1,
 .page-hero h1,
-.backoffice-hero h1,
-.backoffice-entity-header h1 {
+.admin-hero h1,
+.admin-entity-header h1 {
   margin: 0 0 14px;
   color: var(--secondary);
   font-size: 58px;
@@ -568,8 +568,8 @@ body.public-sidebar-open .public-sidebar-backdrop {
 
 .landing-copy p,
 .page-hero p,
-.backoffice-hero p,
-.backoffice-entity-header p {
+.admin-hero p,
+.admin-entity-header p {
   color: var(--text-soft);
   font-size: 17px;
 }
@@ -583,8 +583,8 @@ body.public-sidebar-open .public-sidebar-backdrop {
 }
 
 .hero-stats,
-.backoffice-grid,
-.backoffice-summary-grid {
+.admin-grid,
+.admin-summary-grid {
   display: grid;
   gap: 16px;
 }
@@ -1282,9 +1282,9 @@ body.public-sidebar-open .public-sidebar-backdrop {
 }
 
 .form-control,
-.backoffice-modal input:not([type="checkbox"]):not([type="radio"]),
-.backoffice-modal select,
-.backoffice-modal textarea {
+.admin-modal input:not([type="checkbox"]):not([type="radio"]),
+.admin-modal select,
+.admin-modal textarea {
   width: 100%;
   min-height: 48px;
   padding: 12px 14px;
@@ -1294,20 +1294,20 @@ body.public-sidebar-open .public-sidebar-backdrop {
   box-shadow: none;
 }
 
-.backoffice-modal input[type="checkbox"],
-.backoffice-modal input[type="radio"] {
+.admin-modal input[type="checkbox"],
+.admin-modal input[type="radio"] {
   margin-right: 8px;
 }
 
 textarea.form-control,
-.backoffice-modal textarea {
+.admin-modal textarea {
   min-height: 130px;
 }
 
 .form-control:focus,
-.backoffice-modal input:focus,
-.backoffice-modal select:focus,
-.backoffice-modal textarea:focus {
+.admin-modal input:focus,
+.admin-modal select:focus,
+.admin-modal textarea:focus {
   outline: 0;
   border-color: rgba(31, 111, 235, 0.8);
   box-shadow: 0 0 0 4px rgba(31, 111, 235, 0.08);
@@ -1491,6 +1491,16 @@ textarea.form-control,
   gap: 14px;
 }
 
+.cart-empty-state-shell {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+}
+
+.cart-empty-state-card {
+  width: min(100%, 760px);
+}
+
 .cart-toolbar-card,
 .cart-brand-card,
 .cart-summary-card {
@@ -1640,21 +1650,72 @@ textarea.form-control,
 .cart-table > tbody > tr > td,
 .summary-table > tbody > tr > td,
 .order-table > tbody > tr > td,
-.backoffice-table > tbody > tr > td,
-.backoffice-table > thead > tr > th,
+.admin-table > tbody > tr > td,
+.admin-table > thead > tr > th,
 .order-table > thead > tr > th {
-  padding: 16px 12px;
+  padding: 13px 10px;
   vertical-align: middle;
   border-top: 1px solid rgba(183, 204, 230, 0.5);
 }
 
+.admin-table-responsive {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  table-layout: auto;
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
 .order-table > thead > tr > th,
-.backoffice-table > thead > tr > th {
+.admin-table > thead > tr > th {
   color: var(--text-soft);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.admin-table > thead > tr > th:not(:last-child),
+.admin-table > tbody > tr > td:not(:last-child),
+.admin-table > thead > tr > th:last-child,
+.admin-table > tbody > tr > td:last-child {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.admin-table-thumbnail-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.admin-table-number-col,
+.admin-table-number-cell {
+  width: 56px;
+  min-width: 56px;
+  text-align: center;
+}
+
+.admin-table-number-cell {
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.admin-table-thumbnail {
+  width: 56px;
+  height: 56px;
+  display: block;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid rgba(183, 204, 230, 0.7);
+  background: #f5f8fc;
+}
+
+.admin-table > tbody > tr > td {
+  color: var(--secondary);
 }
 
 .cart-qty-form {
@@ -1694,30 +1755,31 @@ textarea.form-control,
   color: var(--purple);
 }
 
-.backoffice-body {
+.admin-body {
   background:
     radial-gradient(circle at top left, rgba(31, 111, 235, 0.1), transparent 22%),
     linear-gradient(180deg, #f8fbff 0%, #edf4fc 100%);
 }
 
-.backoffice-sidebar {
+.admin-sidebar {
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
-  width: var(--backoffice-sidebar-width);
+  width: var(--admin-sidebar-width);
   z-index: 1020;
   padding: 18px 14px;
   background: rgba(247, 250, 255, 0.98);
   border-right: 1px solid rgba(183, 204, 230, 0.72);
 }
 
-.backoffice-main {
-  margin-left: var(--backoffice-sidebar-width);
+.admin-main {
+  margin-left: var(--admin-sidebar-width);
   min-height: 100vh;
+  min-width: 0;
 }
 
-.backoffice-topbar {
+.admin-topbar {
   position: sticky;
   top: 0;
   z-index: 1010;
@@ -1731,15 +1793,17 @@ textarea.form-control,
   border-bottom: 1px solid rgba(183, 204, 230, 0.55);
 }
 
-.backoffice-topbar .sidebar-toggle-button {
+.admin-topbar .sidebar-toggle-button {
   display: none;
 }
 
-.backoffice-content {
+.admin-content {
   padding: 28px 20px 36px;
+  min-width: 0;
+  overflow-x: clip;
 }
 
-.backoffice-hero {
+.admin-hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1749,19 +1813,25 @@ textarea.form-control,
   background: linear-gradient(135deg, #2b7fff, #175cc5);
   color: #fff;
   margin-bottom: 24px;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.backoffice-hero .eyebrow,
-.backoffice-hero p {
+.admin-hero > div {
+  min-width: 0;
+}
+
+.admin-hero .eyebrow,
+.admin-hero p {
   color: rgba(255, 255, 255, 0.82);
 }
 
-.backoffice-hero h1 {
+.admin-hero h1 {
   color: #fff;
   font-size: 52px;
 }
 
-.backoffice-hero-icon {
+.admin-hero-icon {
   width: 72px;
   height: 72px;
   display: inline-flex;
@@ -1772,10 +1842,11 @@ textarea.form-control,
   font-size: 30px;
 }
 
-.backoffice-grid {
+.admin-grid {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   align-items: stretch;
   margin-bottom: 24px;
+  min-width: 0;
 }
 
 .kpi-card {
@@ -1788,6 +1859,8 @@ textarea.form-control,
   height: 100%;
   padding: 24px;
   border-radius: 24px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .kpi-copy {
@@ -1850,25 +1923,36 @@ textarea.form-control,
   background: linear-gradient(135deg, #8359f2, #b075ff);
 }
 
-.backoffice-dashboard-grid {
+.admin-dashboard-grid {
   grid-template-columns: 1.65fr 0.75fr;
   align-items: start;
+  min-width: 0;
 }
 
-.backoffice-dashboard-main {
+.admin-dashboard-main {
   display: grid;
   gap: 24px;
+  min-width: 0;
 }
 
-.backoffice-panel {
+.admin-panel {
   padding: 26px;
   border-radius: 28px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .quick-actions-panel {
   display: grid;
   gap: 14px;
   align-content: start;
+  min-width: 0;
+}
+
+.admin-grid > *,
+.admin-dashboard-grid > * {
+  min-width: 0;
 }
 
 .panel-helper {
@@ -1876,7 +1960,7 @@ textarea.form-control,
   color: var(--text-soft);
 }
 
-.backoffice-entity-header {
+.admin-entity-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -1884,11 +1968,11 @@ textarea.form-control,
   margin-bottom: 24px;
 }
 
-.backoffice-entity-copy {
+.admin-entity-copy {
   max-width: 760px;
 }
 
-.backoffice-summary-grid {
+.admin-summary-grid {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   margin-bottom: 18px;
 }
@@ -1910,7 +1994,7 @@ textarea.form-control,
   justify-content: flex-start;
 }
 
-.backoffice-filter-card {
+.admin-filter-card {
   margin-bottom: 18px;
   padding: 22px 24px;
   border-radius: 24px;
@@ -1918,22 +2002,22 @@ textarea.form-control,
   border: 1px solid rgba(183, 204, 230, 0.7);
 }
 
-.backoffice-table-card {
-  padding: 8px 0 0;
+.admin-table-card {
+  padding: 4px 0 0;
 }
 
 .table-card-header {
   padding: 0 6px 8px;
 }
 
-.backoffice-search-form {
+.admin-search-form {
   flex: 1 1 auto;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.backoffice-reset-link {
+.admin-reset-link {
   flex: 0 0 auto;
   color: var(--primary-deep);
   font-size: 12px;
@@ -1943,20 +2027,20 @@ textarea.form-control,
   text-decoration: none;
 }
 
-.backoffice-reset-link:hover,
-.backoffice-reset-link:focus {
+.admin-reset-link:hover,
+.admin-reset-link:focus {
   color: var(--secondary);
   text-decoration: none;
 }
 
-.backoffice-search-form input {
+.admin-search-form input {
   flex: 1 1 auto;
 }
 
 .table-actions {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
 }
 
 .table-actions a {
@@ -1997,7 +2081,7 @@ textarea.form-control,
   font-weight: 700;
 }
 
-.backoffice-modal {
+.admin-modal {
   position: fixed;
   inset: 0;
   z-index: 1060;
@@ -2006,49 +2090,49 @@ textarea.form-control,
   background: rgba(18, 28, 39, 0.54);
 }
 
-.backoffice-modal .modal-dialog {
+.admin-modal .modal-dialog {
   margin: 0 auto;
   max-width: 720px;
 }
 
-.backoffice-modal .modal-content {
+.admin-modal .modal-content {
   border: 0;
   border-radius: 28px;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 
-.backoffice-modal .modal-header,
-.backoffice-modal .modal-footer {
+.admin-modal .modal-header,
+.admin-modal .modal-footer {
   border: 0;
   padding: 22px 24px;
 }
 
-.backoffice-modal .modal-header {
+.admin-modal .modal-header {
   background: var(--surface-strong);
 }
 
-.backoffice-modal .modal-body {
+.admin-modal .modal-body {
   padding: 24px;
 }
 
-.backoffice-modal .modal-title {
+.admin-modal .modal-title {
   color: var(--secondary);
   font-size: 34px;
 }
 
-.backoffice-form-alert {
+.admin-form-alert {
   border: 0;
   border-radius: 18px;
   margin-bottom: 20px;
 }
 
-.backoffice-form-alert-list {
+.admin-form-alert-list {
   margin: 10px 0 0;
   padding-left: 18px;
 }
 
-.backoffice-modal .close {
+.admin-modal .close {
   opacity: 1;
   color: var(--secondary);
 }
@@ -3131,7 +3215,7 @@ textarea.form-control,
     grid-template-columns: 1fr;
   }
 
-  .backoffice-grid {
+  .admin-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
@@ -3142,7 +3226,7 @@ textarea.form-control,
 
 @media (max-width: 991px) {
   .public-page-content,
-  .backoffice-content {
+  .admin-content {
     padding: 100px 18px 32px;
   }
 
@@ -3168,7 +3252,7 @@ textarea.form-control,
   .landing-grid,
   .vision-layout,
   .landing-cta-layout,
-  .backoffice-dashboard-grid,
+  .admin-dashboard-grid,
   .layout-grid,
   .product-overview-grid,
   .cart-shell {
@@ -3182,13 +3266,13 @@ textarea.form-control,
 
   .landing-copy h1,
   .page-hero h1,
-  .backoffice-hero h1,
-  .backoffice-entity-header h1 {
+  .admin-hero h1,
+  .admin-entity-header h1 {
     font-size: 44px;
   }
 
   .landing-cta-shell,
-  .backoffice-hero {
+  .admin-hero {
     display: block;
   }
 
@@ -3201,7 +3285,7 @@ textarea.form-control,
   }
 
   .landing-cta-shell .landing-actions,
-  .backoffice-hero-icon {
+  .admin-hero-icon {
     margin-top: 18px;
   }
 
@@ -3213,39 +3297,39 @@ textarea.form-control,
     opacity: 1;
   }
 
-  .backoffice-sidebar {
+  .admin-sidebar {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: min(78vw, var(--backoffice-sidebar-width));
+    width: min(78vw, var(--admin-sidebar-width));
     z-index: 1020;
     transform: translateX(-100%);
     transition: transform 0.24s ease;
     box-shadow: var(--shadow-md);
   }
 
-  .backoffice-main {
+  .admin-main {
     margin-left: 0;
   }
 
-  .backoffice-topbar {
+  .admin-topbar {
     justify-content: space-between;
     min-height: 62px;
     padding: 8px 18px;
   }
 
-  .backoffice-topbar .sidebar-toggle-button {
+  .admin-topbar .sidebar-toggle-button {
     display: inline-flex;
   }
 
-  .backoffice-grid {
+  .admin-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .panel-toolbar,
   .section-heading,
-  .backoffice-entity-header {
+  .admin-entity-header {
     display: block;
   }
 
@@ -3254,11 +3338,11 @@ textarea.form-control,
     margin-top: 14px;
   }
 
-  body.backoffice-sidebar-open .backoffice-sidebar {
+  body.admin-sidebar-open .admin-sidebar {
     transform: translateX(0);
   }
 
-  body.backoffice-sidebar-open .backoffice-sidebar-backdrop {
+  body.admin-sidebar-open .admin-sidebar-backdrop {
     display: block;
   }
 }
@@ -3275,7 +3359,7 @@ textarea.form-control,
 
   .landing-section,
   .public-page-content,
-  .backoffice-content {
+  .admin-content {
     padding-left: 14px;
     padding-right: 14px;
   }
@@ -3292,8 +3376,8 @@ textarea.form-control,
   .auth-card,
   .category-card,
   .empty-state-card,
-  .backoffice-panel,
-  .backoffice-hero,
+  .admin-panel,
+  .admin-hero,
   .kpi-card,
   .value-card,
   .vision-card {
@@ -3303,8 +3387,8 @@ textarea.form-control,
 
   .landing-copy h1,
   .page-hero h1,
-  .backoffice-hero h1,
-  .backoffice-entity-header h1 {
+  .admin-hero h1,
+  .admin-entity-header h1 {
     font-size: 36px;
   }
 
@@ -3365,7 +3449,7 @@ textarea.form-control,
     grid-template-columns: 1fr;
   }
 
-  .backoffice-grid {
+  .admin-grid {
     grid-template-columns: 1fr;
   }
 
@@ -3418,7 +3502,7 @@ textarea.form-control,
     grid-column: span 1;
   }
 
-  .backoffice-topbar {
+  .admin-topbar {
     display: block;
   }
 
@@ -3426,7 +3510,7 @@ textarea.form-control,
     min-height: calc(100vh - 72px);
   }
 
-  .backoffice-topbar-user {
+  .admin-topbar-user {
     margin-top: 12px;
   }
 

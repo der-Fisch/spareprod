@@ -3,20 +3,20 @@
 @section('title', 'Admin Settings | Spare Soko')
 
 @section('content')
-  <section class="backoffice-hero">
+  <section class="admin-hero">
     <div>
       <span class="eyebrow">Admin Settings</span>
       <h1>Kelola identitas login admin.</h1>
       <p>Halaman ini disederhanakan untuk kebutuhan operasional admin: username, email, WhatsApp, dan password.</p>
     </div>
-    <div class="backoffice-hero-icon">
+    <div class="admin-hero-icon">
       <i class="fa fa-user-secret"></i>
     </div>
   </section>
 
-  <section class="backoffice-dashboard-grid">
-    <div class="backoffice-dashboard-main">
-      <div class="backoffice-panel">
+  <section class="admin-dashboard-grid">
+    <div class="admin-dashboard-main">
+      <div class="admin-panel">
         <div class="panel-heading-inline">
           <div>
             <span class="eyebrow">Profil Admin</span>
@@ -52,7 +52,7 @@
         </form>
       </div>
 
-      <div class="backoffice-panel">
+      <div class="admin-panel">
         <div class="panel-heading-inline">
           <div>
             <span class="eyebrow">Keamanan</span>
@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    <div class="backoffice-panel quick-actions-panel">
+    <div class="admin-panel quick-actions-panel">
       <span class="eyebrow">Ringkasan</span>
       <h2>Akun Admin</h2>
       <p class="panel-helper">Data yang tampil di sini hanya yang relevan untuk operasional admin.</p>

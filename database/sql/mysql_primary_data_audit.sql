@@ -29,8 +29,6 @@ SELECT 'user_checkouts', COUNT(*) FROM user_checkouts
 UNION ALL
 SELECT 'user_addresses', COUNT(*) FROM user_addresses
 UNION ALL
-SELECT 'user_payment_methods', COUNT(*) FROM user_payment_methods
-UNION ALL
 SELECT 'carts', COUNT(*) FROM carts
 UNION ALL
 SELECT 'cart_items', COUNT(*) FROM cart_items
@@ -100,11 +98,6 @@ FROM user_addresses ua
 LEFT JOIN user_checkouts uc ON uc.id = ua.user_checkout_id
 WHERE uc.id IS NULL
 UNION ALL
-SELECT 'user_payment_methods.user_id missing users', COUNT(*)
-FROM user_payment_methods upm
-LEFT JOIN users u ON u.id = upm.user_id
-WHERE u.id IS NULL
-UNION ALL
 SELECT 'carts.user_id missing users', COUNT(*)
 FROM carts c
 LEFT JOIN users u ON u.id = c.user_id
@@ -144,11 +137,6 @@ SELECT 'orders.billing_address_id missing user_addresses', COUNT(*)
 FROM orders o
 LEFT JOIN user_addresses ua ON ua.id = o.billing_address_id
 WHERE o.billing_address_id IS NOT NULL AND ua.id IS NULL
-UNION ALL
-SELECT 'orders.user_payment_method_id missing user_payment_methods', COUNT(*)
-FROM orders o
-LEFT JOIN user_payment_methods upm ON upm.id = o.user_payment_method_id
-WHERE o.user_payment_method_id IS NOT NULL AND upm.id IS NULL
 UNION ALL
 SELECT 'order_items.order_id missing orders', COUNT(*)
 FROM order_items oi

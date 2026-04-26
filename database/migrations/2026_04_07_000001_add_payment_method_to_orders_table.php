@@ -10,10 +10,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('payment_method', 20)->default('prepaid')->after('status');
+            $table->string('payment_method', 20)->default('cod')->after('status');
         });
 
-        DB::table('orders')->whereNull('payment_method')->update(['payment_method' => 'prepaid']);
+        DB::table('orders')->whereNull('payment_method')->update(['payment_method' => 'cod']);
     }
 
     public function down(): void

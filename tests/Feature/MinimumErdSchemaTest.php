@@ -6,8 +6,8 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\UserCheckout;
-use Database\Seeders\DemoCatalogSeeder;
-use Database\Seeders\DemoStoreSeeder;
+use Database\Seeders\CatalogSeeder;
+use Database\Seeders\StoreSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -43,11 +43,11 @@ class MinimumErdSchemaTest extends TestCase
 
     public function test_seeded_data_is_synced_to_minimum_erd_fields(): void
     {
-        $this->seed(DemoCatalogSeeder::class);
-        $this->seed(DemoStoreSeeder::class);
+        $this->seed(CatalogSeeder::class);
+        $this->seed(StoreSeeder::class);
 
         $admin = User::query()->where('username', 'admin')->firstOrFail();
-        $customer = User::query()->where('username', 'demo')->firstOrFail();
+        $customer = User::query()->where('username', 'raka.saputra')->firstOrFail();
         $product = Product::query()->where('sku', 'BTC-12V-009')->firstOrFail();
         $order = Order::query()->where('order_id', 'SSK-1001')->firstOrFail();
 

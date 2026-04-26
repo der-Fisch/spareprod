@@ -8,8 +8,8 @@ use App\Models\UserCheckout;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Variation;
-use Database\Seeders\DemoCatalogSeeder;
-use Database\Seeders\DemoStoreSeeder;
+use Database\Seeders\CatalogSeeder;
+use Database\Seeders\StoreSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,13 +19,13 @@ class StorefrontModulesTest extends TestCase
 
     protected function seedStore(): void
     {
-        $this->seed(DemoCatalogSeeder::class);
-        $this->seed(DemoStoreSeeder::class);
+        $this->seed(CatalogSeeder::class);
+        $this->seed(StoreSeeder::class);
     }
 
     public function test_add_to_cart_returns_json_for_ajax_requests(): void
     {
-        $this->seed(DemoCatalogSeeder::class);
+        $this->seed(CatalogSeeder::class);
         $variation = Variation::query()->firstOrFail();
 
         $response = $this->post('/cart/items', [
@@ -45,7 +45,7 @@ class StorefrontModulesTest extends TestCase
     public function test_authenticated_user_can_view_account_settings(): void
     {
         $this->seedStore();
-        $user = User::query()->where('username', 'demo')->firstOrFail();
+        $user = User::query()->where('username', 'raka.saputra')->firstOrFail();
 
         $response = $this->actingAs($user)->get('/settings');
 
@@ -91,7 +91,7 @@ class StorefrontModulesTest extends TestCase
     public function test_guest_checkout_session_can_view_order_detail(): void
     {
         $this->seedStore();
-        $checkout = UserCheckout::query()->where('email', 'demo@sparesoko.test')->firstOrFail();
+        $checkout = UserCheckout::query()->where('email', 'raka@sparesoko.test')->firstOrFail();
         $order = Order::query()->where('user_checkout_id', $checkout->id)->firstOrFail();
 
         $response = $this->withSession(['user_checkout_id' => $checkout->id])->get('/orders/' . $order->id);
@@ -103,7 +103,7 @@ class StorefrontModulesTest extends TestCase
     public function test_authenticated_user_can_see_order_id_and_product_names_in_order_history(): void
     {
         $this->seedStore();
-        $user = User::query()->where('username', 'demo')->firstOrFail();
+        $user = User::query()->where('username', 'raka.saputra')->firstOrFail();
         $order = Order::query()->where('user_checkout_id', UserCheckout::query()->where('user_id', $user->id)->value('id'))->firstOrFail();
         $firstProductName = $order->cart->cartItems()->with('item.product')->firstOrFail()?->item?->product?->title;
 
@@ -114,12 +114,12 @@ class StorefrontModulesTest extends TestCase
         $response->assertSee($firstProductName, false);
     }
 
-    public function test_staff_user_can_open_backoffice_dashboard(): void
+    public function test_staff_user_can_open_admin_dashboard(): void
     {
         $this->seedStore();
         $admin = User::query()->where('username', 'admin')->firstOrFail();
 
-        $response = $this->actingAs($admin)->get('/backoffice');
+        $response = $this->actingAs($admin)->get('/admin');
 
         $response->assertOk();
         $response->assertSee('Dashboard', false);
@@ -132,10 +132,10 @@ class StorefrontModulesTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/products');
 
-        $response->assertRedirect('/backoffice');
+        $response->assertRedirect('/admin');
     }
 
-    public function test_staff_login_redirects_to_backoffice_dashboard(): void
+    public function test_staff_login_redirects_to_admin_dashboard(): void
     {
         $this->seedStore();
 
@@ -145,7 +145,7 @@ class StorefrontModulesTest extends TestCase
             'next' => '/products',
         ]);
 
-        $response->assertRedirect('/backoffice');
+        $response->assertRedirect('/admin');
     }
 
     public function test_admin_product_update_changes_user_facing_product_data(): void
@@ -155,7 +155,7 @@ class StorefrontModulesTest extends TestCase
         $product = Product::query()->where('title', 'Battery Terminal Clamp')->firstOrFail();
 
         $response = $this->actingAs($admin)->post(
-            '/backoffice/products/' . $product->id . '/edit',
+            '/admin/products/' . $product->id . '/edit',
             [
                 'title' => 'Battery Terminal Clamp',
                 'description' => 'Clamp baterai revisi admin.',
@@ -164,11 +164,9 @@ class StorefrontModulesTest extends TestCase
                 'brand_name' => 'Bosch Update',
                 'brand_type' => 'Aftermarket',
                 'warranty_label' => 'Garansi Admin 14 Hari',
-                'rating' => '4.2',
                 'price' => '14.50',
                 'stok' => '9',
-                'default_category_id' => (string) $product->default_category_id,
-                'categories' => [(string) $product->default_category_id],
+                'category_id' => (string) $product->default_category_id,
                 'compatibility_entries' => [
                     ['vehicle_name' => 'Suzuki Ertiga', 'year_start' => '2018', 'year_end' => '2022'],
                     ['vehicle_name' => 'Toyota Avanza', 'year_start' => '2019', 'year_end' => '2023'],
@@ -230,16 +228,15 @@ class StorefrontModulesTest extends TestCase
         $admin = User::query()->where('username', 'admin')->firstOrFail();
         $category = Category::query()->where('slug', 'brakes')->firstOrFail();
 
-        $createModal = $this->actingAs($admin)->get('/backoffice/categories/create', [
+        $createModal = $this->actingAs($admin)->get('/admin/categories/create', [
             'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
         $createModal->assertOk();
         $createModal->assertJsonStructure(['html']);
 
-        $createResponse = $this->actingAs($admin)->post('/backoffice/categories/create', [
+        $createResponse = $this->actingAs($admin)->post('/admin/categories/create', [
             'title' => 'Cooling',
-            'slug' => 'cooling',
             'description' => 'Cooling parts',
             'active' => '1',
         ], [
@@ -250,16 +247,15 @@ class StorefrontModulesTest extends TestCase
         $createResponse->assertJson(['success' => true]);
         $this->assertDatabaseHas('categories', ['slug' => 'cooling', 'title' => 'Cooling']);
 
-        $editModal = $this->actingAs($admin)->get('/backoffice/categories/' . $category->id . '/edit', [
+        $editModal = $this->actingAs($admin)->get('/admin/categories/' . $category->id . '/edit', [
             'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
         $editModal->assertOk();
         $editModal->assertJsonStructure(['html']);
 
-        $editResponse = $this->actingAs($admin)->post('/backoffice/categories/' . $category->id . '/edit', [
+        $editResponse = $this->actingAs($admin)->post('/admin/categories/' . $category->id . '/edit', [
             'title' => 'Brake Systems',
-            'slug' => 'brakes',
             'description' => 'Updated description',
             'active' => '1',
         ], [
@@ -268,16 +264,16 @@ class StorefrontModulesTest extends TestCase
 
         $editResponse->assertOk();
         $editResponse->assertJson(['success' => true]);
-        $this->assertDatabaseHas('categories', ['id' => $category->id, 'title' => 'Brake Systems']);
+        $this->assertDatabaseHas('categories', ['id' => $category->id, 'title' => 'Brake Systems', 'slug' => 'brake-systems']);
 
-        $deleteModal = $this->actingAs($admin)->get('/backoffice/categories/' . $category->id . '/delete', [
+        $deleteModal = $this->actingAs($admin)->get('/admin/categories/' . $category->id . '/delete', [
             'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
         $deleteModal->assertOk();
         $deleteModal->assertJsonStructure(['html']);
 
-        $deleteResponse = $this->actingAs($admin)->post('/backoffice/categories/' . $category->id . '/delete', [], [
+        $deleteResponse = $this->actingAs($admin)->post('/admin/categories/' . $category->id . '/delete', [], [
             'X-Requested-With' => 'XMLHttpRequest',
         ]);
 
@@ -289,9 +285,8 @@ class StorefrontModulesTest extends TestCase
     public function test_checkout_reduces_inventory_for_purchased_variations_only(): void
     {
         $this->seedStore();
-        $customer = User::query()->where('username', 'demo')->firstOrFail();
+        $customer = User::query()->where('username', 'raka.saputra')->firstOrFail();
         $order = Order::query()->with('cart.cartItems.item')->firstOrFail();
-        $order->update(['payment_method' => 'cod']);
         $cartItems = $order->cart->cartItems->values();
 
         $this->assertGreaterThanOrEqual(2, $cartItems->count());
@@ -332,9 +327,8 @@ class StorefrontModulesTest extends TestCase
     public function test_cod_checkout_creates_order_without_marking_it_paid(): void
     {
         $this->seedStore();
-        $customer = User::query()->where('username', 'demo')->firstOrFail();
+        $customer = User::query()->where('username', 'raka.saputra')->firstOrFail();
         $order = Order::query()->with('cart.cartItems.item')->firstOrFail();
-        $order->update(['payment_method' => 'cod']);
 
         $cartItems = $order->cart->cartItems->values();
         $productId = $cartItems[0]->item->product_id;
@@ -357,28 +351,5 @@ class StorefrontModulesTest extends TestCase
         $this->assertSame('cod', $order->fresh()->payment_method);
         $this->assertSame('created', $order->fresh()->status);
         $this->assertSame($before - $expectedReduction, $product->fresh()->stok);
-    }
-
-    public function test_prepaid_checkout_requires_payment_gateway_when_not_available(): void
-    {
-        $this->seedStore();
-        $customer = User::query()->where('username', 'demo')->firstOrFail();
-        $order = Order::query()->with('cart.cartItems.item')->firstOrFail();
-        $order->update(['payment_method' => 'prepaid']);
-
-        $product = Product::query()->findOrFail($order->cart->cartItems->firstOrFail()->item->product_id);
-        $before = $product->stok;
-
-        $response = $this->actingAs($customer)
-            ->withSession([
-                'cart_id' => $order->cart_id,
-                'order_id' => $order->id,
-                'user_checkout_id' => $order->user_checkout_id,
-            ])
-            ->post('/checkout/final');
-
-        $response->assertRedirect('/checkout');
-        $this->assertSame('created', $order->fresh()->status);
-        $this->assertSame($before, $product->fresh()->stok);
     }
 }

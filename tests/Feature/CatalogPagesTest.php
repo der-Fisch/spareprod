@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Product;
-use Database\Seeders\DemoCatalogSeeder;
+use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -13,7 +13,7 @@ class CatalogPagesTest extends TestCase
 
     public function test_home_page_renders_successfully(): void
     {
-        $this->seed(DemoCatalogSeeder::class);
+        $this->seed(CatalogSeeder::class);
 
         $response = $this->get('/');
 
@@ -25,7 +25,7 @@ class CatalogPagesTest extends TestCase
 
     public function test_products_index_renders_successfully(): void
     {
-        $this->seed(DemoCatalogSeeder::class);
+        $this->seed(CatalogSeeder::class);
 
         $response = $this->get('/products');
 
@@ -37,7 +37,7 @@ class CatalogPagesTest extends TestCase
 
     public function test_product_detail_renders_successfully(): void
     {
-        $this->seed(DemoCatalogSeeder::class);
+        $this->seed(CatalogSeeder::class);
         $product = Product::query()->firstOrFail();
 
         $response = $this->get('/products/' . $product->id);
@@ -46,7 +46,7 @@ class CatalogPagesTest extends TestCase
         $response->assertSee($product->title, false);
         $response->assertSee('Nomor Part / SKU', false);
         $response->assertSee('Spesifikasi Teknis', false);
-        $response->assertSee('Rating', false);
+        $response->assertDontSee('Rating', false);
         $response->assertDontSee('ulasan', false);
         $response->assertSee('Stok Produk', false);
         $response->assertSee('Gambar berikutnya', false);
@@ -71,7 +71,7 @@ class CatalogPagesTest extends TestCase
 
     public function test_products_index_uses_found_label_when_filters_are_active(): void
     {
-        $this->seed(DemoCatalogSeeder::class);
+        $this->seed(CatalogSeeder::class);
 
         $response = $this->get('/products?min_price=500000');
 

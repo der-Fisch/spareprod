@@ -9,12 +9,11 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\Models\UserCheckout;
-use App\Models\UserPaymentMethod;
 use App\Models\Variation;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class DemoStoreSeeder extends Seeder
+class StoreSeeder extends Seeder
 {
     public function run(): void
     {
@@ -32,11 +31,11 @@ class DemoStoreSeeder extends Seeder
         );
 
         $customer = User::query()->updateOrCreate(
-            ['username' => 'demo'],
+            ['username' => 'raka.saputra'],
             [
-                'email' => 'demo@sparesoko.test',
-                'first_name' => 'Demo User',
-                'last_name' => 'Storefront',
+                'email' => 'raka@sparesoko.test',
+                'first_name' => 'Raka',
+                'last_name' => 'Saputra',
                 'is_active' => true,
                 'is_staff' => false,
                 'date_joined' => now()->subMonths(3),
@@ -81,18 +80,6 @@ class DemoStoreSeeder extends Seeder
             ]
         );
 
-        UserPaymentMethod::query()->updateOrCreate(
-            ['user_id' => $customer->id, 'provider_code' => 'bca_va'],
-            [
-                'provider_name' => 'BCA Virtual Account',
-                'method_type' => 'virtual_account',
-                'account_name' => $customer->name,
-                'account_reference' => '880812341001',
-                'status' => 'demo_ready',
-                'is_default' => true,
-            ]
-        );
-
         $cart = Cart::query()->updateOrCreate(
             ['user_id' => $customer->id],
             ['tax_percentage' => 0.07500]
@@ -113,7 +100,7 @@ class DemoStoreSeeder extends Seeder
                 'user_checkout_id' => $checkout->id,
                 'billing_address_id' => $shipping->id,
                 'shipping_address_id' => $shipping->id,
-                'payment_method' => 'prepaid',
+                'payment_method' => 'cod',
                 'shipping_total_price' => 5.99,
                 'status' => 'created',
                 'order_id' => 'SSK-1001',

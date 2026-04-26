@@ -1,4 +1,4 @@
-<div class="modal fade in backoffice-modal" style="display:block;">
+<div class="modal fade in admin-modal" style="display:block;">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -11,13 +11,13 @@
           @endif
         </h4>
       </div>
-      <form method="POST" enctype="multipart/form-data" action="{{ $object ? route('backoffice.entity.modal.store', ['entity' => $entity, 'pk' => $object->id, 'mode' => $mode]) : route('backoffice.entity.modal.create.store', ['entity' => $entity, 'mode' => $mode]) }}" data-modal-form>
+      <form method="POST" enctype="multipart/form-data" action="{{ $object ? route('admin.entity.modal.store', ['entity' => $entity, 'pk' => $object->id, 'mode' => $mode]) : route('admin.entity.modal.create.store', ['entity' => $entity, 'mode' => $mode]) }}" data-modal-form>
         @csrf
         <div class="modal-body">
           @if (method_exists($errorsBag, 'all') && count($errorsBag->all()))
-            <div class="alert alert-danger backoffice-form-alert">
+            <div class="alert alert-danger admin-form-alert">
               <strong>Data belum bisa disimpan.</strong>
-              <ul class="backoffice-form-alert-list">
+              <ul class="admin-form-alert-list">
                 @foreach ($errorsBag->all() as $message)
                   <li>{{ $message }}</li>
                 @endforeach
@@ -39,7 +39,7 @@
               @if ($fieldType === 'textarea')
                 <textarea id="{{ $fieldId }}" name="{{ $fieldName }}" class="form-control" placeholder="{{ $placeholder }}">{{ $value }}</textarea>
               @elseif ($fieldType === 'static_text')
-                <div class="backoffice-static-field">
+                <div class="admin-static-field">
                   <p>{{ $value }}</p>
                 </div>
               @elseif ($fieldType === 'select')

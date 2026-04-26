@@ -10,7 +10,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('redirect_staff_to_backoffice')->group(function () {
+Route::middleware('redirect_staff_to_admin')->group(function () {
     Route::get('/', HomeController::class)->name('home');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
@@ -47,11 +47,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings', [AccountSettingsController::class, 'update'])->name('account.settings.update');
 });
 
-Route::middleware(['auth', 'redirect_staff_to_backoffice'])->group(function () {
+Route::middleware(['auth', 'redirect_staff_to_admin'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 });
 
-Route::prefix('backoffice')->name('backoffice.')->middleware('auth')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/{entity}', [AdminController::class, 'index'])->name('entity.list');
     Route::get('/{entity}/{mode}', [AdminController::class, 'modal'])->name('entity.modal.create');

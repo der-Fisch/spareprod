@@ -6,17 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
-use App\Services\BackofficeEntityService;
+use App\Services\AdminEntityService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
+use Throwable;
 
 class AdminController extends Controller
 {
     public function __construct(
-        protected BackofficeEntityService $entityService,
+        protected AdminEntityService $entityService,
     ) {
     }
 
@@ -25,7 +28,7 @@ class AdminController extends Controller
         $this->ensureStaff($request);
 
         $revenueRows = Order::query()
-            ->with(['user', 'accountUser', 'userPaymentMethod'])
+            ->with(['user', 'accountUser'])
             ->whereIn('status', ['paid', 'shipped'])
             ->latest('updated_at')
             ->take(8)
@@ -34,7 +37,6 @@ class AdminController extends Controller
                 return [
                     'order_id' => $order->order_id ?: ('Order #' . $order->id),
                     'customer' => $order->user?->email ?: $order->accountUser?->email ?: '-',
-                    'payment' => $order->payment_method_label,
                     'status' => $order->status_label,
                     'total' => (float) $order->order_total,
                     'recorded_at' => $order->updated_at ?: $order->created_at,
@@ -93,9 +95,9 @@ class AdminController extends Controller
             'revenue_rows' => $revenueRows,
             'recent_rows' => $recentRows,
             'quick_actions' => [
-                ['label' => 'Tambah Produk', 'url' => route('backoffice.entity.modal.create', ['entity' => 'products', 'mode' => 'create']), 'kind' => 'modal'],
-                ['label' => 'Lihat Produk', 'url' => route('backoffice.entity.list', ['entity' => 'products']), 'kind' => 'link'],
-                ['label' => 'Kelola Orders', 'url' => route('backoffice.entity.list', ['entity' => 'orders']), 'kind' => 'link'],
+                ['label' => 'Tambah Produk', 'url' => route('admin.entity.modal.create', ['entity' => 'products', 'mode' => 'create']), 'kind' => 'modal'],
+                ['label' => 'Lihat Produk', 'url' => route('admin.entity.list', ['entity' => 'products']), 'kind' => 'link'],
+                ['label' => 'Kelola Orders', 'url' => route('admin.entity.list', ['entity' => 'orders']), 'kind' => 'link'],
             ],
         ]);
     }
@@ -200,7 +202,30 @@ class AdminController extends Controller
             ], 400);
         }
 
-        $this->entityService->persist($entity, $validator->validated(), $object);
+        try {
+            $this->entityService->persist($entity, $validator->validated(), $object);
+        } catch (Throwable $exception) {
+            Log::error('Admin entity save failed.', [
+                'entity' => $entity,
+                'mode' => $mode,
+                'object_id' => $object?->id,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'html' => view('partials.admin.modal_form', [
+                    'entity' => $entity,
+                    'config' => $config,
+                    'mode' => $mode,
+                    'object' => $object,
+                    'input' => $request->all(),
+                    'errorsBag' => new MessageBag([
+                        'general' => ['Data belum bisa disimpan. Periksa kembali field yang diisi lalu coba lagi.'],
+                    ]),
+                ])->render(),
+            ], 400);
+        }
 
         return response()->json([
             'success' => true,
@@ -218,21 +243,17 @@ class AdminController extends Controller
                 'can_create' => true,
                 'can_update' => true,
                 'columns' => [
-                    ['label' => 'Category', 'key' => 'title'],
-                    ['label' => 'Slug', 'key' => 'slug'],
+                    ['label' => 'Kategori', 'key' => 'title'],
                     ['label' => 'Status', 'key' => 'active', 'type' => 'boolean'],
-                    ['label' => 'Created', 'key' => 'created_at', 'type' => 'date'],
                 ],
                 'fields' => [
-                    ['name' => 'title', 'label' => 'Title', 'type' => 'text', 'placeholder' => 'Contoh: Cooling System'],
-                    ['name' => 'slug', 'label' => 'Slug', 'type' => 'text', 'placeholder' => 'Contoh: cooling-system'],
-                    ['name' => 'description', 'label' => 'Description', 'type' => 'textarea', 'placeholder' => 'Jelaskan kategori ini secara singkat.'],
-                    ['name' => 'active', 'label' => 'Active', 'type' => 'checkbox'],
+                    ['name' => 'title', 'label' => 'Nama Kategori', 'type' => 'text', 'placeholder' => 'Contoh: Cooling System'],
+                    ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'placeholder' => 'Jelaskan kategori ini secara singkat.'],
+                    ['name' => 'active', 'label' => 'Aktif', 'type' => 'checkbox'],
                 ],
                 'summary' => fn (Builder $query) => ['Total Categories' => (clone $query)->count(), 'Active' => (clone $query)->where('active', true)->count()],
                 'rules' => fn (?Category $category) => [
                     'title' => ['required', 'string', 'max:255'],
-                    'slug' => ['required', 'string', 'max:255', 'unique:categories,slug' . ($category ? ',' . $category->id : '')],
                     'description' => ['nullable', 'string'],
                     'active' => ['nullable', 'boolean'],
                 ],
@@ -244,8 +265,9 @@ class AdminController extends Controller
                 'can_create' => true,
                 'can_update' => true,
                 'columns' => [
+                    ['label' => 'Gambar', 'key' => 'image_url', 'type' => 'image'],
                     ['label' => 'Product', 'key' => 'title'],
-                    ['label' => 'Category', 'key' => 'defaultCategory.title'],
+                    ['label' => 'Kategori', 'key' => 'defaultCategory.title'],
                     ['label' => 'Stock', 'key' => 'stock_display_label'],
                     ['label' => 'Price', 'key' => 'price', 'type' => 'currency_catalog'],
                     ['label' => 'Status', 'key' => 'active', 'type' => 'boolean'],
@@ -254,14 +276,11 @@ class AdminController extends Controller
                     ['name' => 'title', 'label' => 'Title', 'type' => 'text', 'placeholder' => 'Contoh: Battery Terminal Clamp'],
                     ['name' => 'description', 'label' => 'Description', 'type' => 'textarea', 'placeholder' => 'Jelaskan fungsi singkat, keunggulan, dan penggunaan produk.'],
                     ['name' => 'sku', 'label' => 'SKU', 'type' => 'text', 'placeholder' => 'Contoh: BTC-12V-009'],
-                    ['name' => 'oem_number', 'label' => 'OEM Number', 'type' => 'text', 'placeholder' => 'Contoh: 04465-BZ140'],
                     ['name' => 'brand_name', 'label' => 'Brand Name', 'type' => 'text', 'placeholder' => 'Contoh: Bosch'],
-                    ['name' => 'brand_type', 'label' => 'Brand Type', 'type' => 'select', 'options' => ['OEM' => 'OEM', 'Aftermarket' => 'Aftermarket'], 'placeholder' => 'Pilih tipe brand'],
                     ['name' => 'warranty_label', 'label' => 'Warranty Label', 'type' => 'text', 'placeholder' => 'Contoh: Garansi Resmi 1 Bulan'],
                     ['name' => 'price', 'label' => 'Price', 'type' => 'currency_catalog', 'placeholder' => 'Contoh: Rp145.000'],
                     ['name' => 'stok', 'label' => 'Stock', 'type' => 'number', 'placeholder' => 'Contoh: 24'],
-                    ['name' => 'default_category_id', 'label' => 'Default Category', 'type' => 'select', 'options' => Category::query()->orderBy('title')->pluck('title', 'id')->all(), 'placeholder' => 'Pilih kategori utama'],
-                    ['name' => 'categories', 'label' => 'Categories', 'type' => 'multiselect', 'options' => Category::query()->orderBy('title')->pluck('title', 'id')->all(), 'placeholder' => 'Cari dan pilih satu atau lebih kategori'],
+                    ['name' => 'category_id', 'label' => 'Kategori', 'type' => 'select', 'options' => Category::query()->orderBy('title')->pluck('title', 'id')->all(), 'placeholder' => 'Pilih kategori produk'],
                     ['name' => 'compatibility_entries', 'label' => 'Compatibilities', 'type' => 'compatibility_repeater', 'help_text' => 'Tambahkan kendaraan yang didukung satu per satu.'],
                     ['name' => 'specification_entries', 'label' => 'Technical Specifications', 'type' => 'specification_repeater', 'help_text' => 'Tambahkan spesifikasi teknis per baris agar lebih mudah dibaca.'],
                     ['name' => 'image_entries', 'label' => 'Product Images', 'type' => 'image_repeater', 'help_text' => 'Tambahkan gambar satu per satu dan periksa preview-nya sebelum menyimpan.'],
@@ -269,9 +288,7 @@ class AdminController extends Controller
                 ],
                 'detail_fields' => [
                     ['label' => 'SKU', 'key' => 'sku'],
-                    ['label' => 'OEM Number', 'key' => 'oem_number'],
                     ['label' => 'Brand', 'key' => 'brand_name'],
-                    ['label' => 'Brand Type', 'key' => 'brand_type'],
                     ['label' => 'Warranty', 'key' => 'warranty_label'],
                     ['label' => 'Stock', 'key' => 'stock_display_label'],
                     ['label' => 'Compatibilities', 'key' => 'compatibility_list', 'type' => 'list'],
@@ -283,15 +300,11 @@ class AdminController extends Controller
                     'title' => ['required', 'string', 'max:255'],
                     'description' => ['nullable', 'string'],
                     'sku' => ['nullable', 'string', 'max:255'],
-                    'oem_number' => ['nullable', 'string', 'max:255'],
                     'brand_name' => ['nullable', 'string', 'max:255'],
-                    'brand_type' => ['nullable', 'in:OEM,Aftermarket'],
                     'warranty_label' => ['nullable', 'string', 'max:255'],
                     'price' => ['required', 'numeric', 'min:0'],
                     'stok' => ['required', 'integer', 'min:0'],
-                    'default_category_id' => ['nullable', 'exists:categories,id'],
-                    'categories' => ['nullable', 'array'],
-                    'categories.*' => ['exists:categories,id'],
+                    'category_id' => ['nullable', 'exists:categories,id'],
                     'compatibility_entries' => ['nullable', 'array'],
                     'compatibility_entries.*.vehicle_name' => ['nullable', 'string', 'max:255'],
                     'compatibility_entries.*.year_start' => ['nullable', 'integer', 'min:1900', 'max:2100'],
@@ -315,7 +328,6 @@ class AdminController extends Controller
                 'columns' => [
                     ['label' => 'Order', 'key' => 'order_id'],
                     ['label' => 'Customer', 'key' => 'user.email'],
-                    ['label' => 'Pembayaran', 'key' => 'payment_method_label'],
                     ['label' => 'Status', 'key' => 'status_label', 'type' => 'badge'],
                     ['label' => 'Items', 'key' => 'display_item_count', 'type' => 'count'],
                     ['label' => 'Total', 'key' => 'order_total', 'type' => 'currency_catalog'],
@@ -328,7 +340,6 @@ class AdminController extends Controller
                     ['label' => 'Order ID', 'key' => 'order_id'],
                     ['label' => 'Customer', 'key' => 'user.email'],
                     ['label' => 'Produk Dibeli', 'key' => 'display_item_summaries', 'type' => 'list'],
-                    ['label' => 'Metode Pembayaran', 'key' => 'payment_method_label'],
                     ['label' => 'Status', 'key' => 'status_label'],
                     ['label' => 'Alamat Pengiriman', 'key' => 'shippingAddress.address'],
                     ['label' => 'Total Pembayaran', 'key' => 'total_bayar', 'type' => 'currency_catalog'],
@@ -376,14 +387,11 @@ class AdminController extends Controller
                 'title' => $object->title,
                 'description' => $object->description,
                 'sku' => $object->sku,
-                'oem_number' => $object->oem_number,
                 'brand_name' => $object->brand_name,
-                'brand_type' => $object->brand_type,
                 'warranty_label' => $object->warranty_label,
                 'price' => $object->price,
                 'stok' => $object->stok,
-                'default_category_id' => $object->default_category_id,
-                'categories' => $object->categories()->pluck('categories.id')->all(),
+                'category_id' => $object->default_category_id ?: $object->categories()->pluck('categories.id')->first(),
                 'compatibility_entries' => $object->compatibilities
                     ->map(fn ($item) => [
                         'vehicle_name' => $item->vehicle_name,

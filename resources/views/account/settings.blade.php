@@ -12,8 +12,8 @@
 
 @section('content')
   <section class="page-hero page-hero-compact">
-    <span class="eyebrow">Account Center</span>
-    <h1>Kelola biodata, alamat, pembayaran, dan keamanan akun Anda.</h1>
+    <span class="eyebrow">Pusat Akun</span>
+    <h1>Kelola biodata, alamat, dan keamanan akun Anda.</h1>
     <p>Pastikan data inti akun Anda selalu lengkap agar proses belanja, checkout, dan order berjalan lebih lancar.</p>
   </section>
 
@@ -23,10 +23,10 @@
         <div class="account-hub-identity">
           <div class="account-hub-avatar">{{ avatar_initials(auth()->user()) }}</div>
           <div class="account-hub-copy">
-            <span class="eyebrow">Customer Workspace</span>
+            <span class="eyebrow">Akun Pelanggan</span>
             <h2>{{ auth()->user()->name }}</h2>
             <p>{{ auth()->user()->email }}</p>
-            <small>Member sejak {{ optional(auth()->user()->date_joined)->format('F Y') ?: 'baru saja' }}</small>
+            <small>Member sejak {{ optional(auth()->user()->date_joined)->format('F Y') ?: 'tanggal bergabung belum tercatat' }}</small>
           </div>
         </div>
 
@@ -36,8 +36,8 @@
             <strong>{{ $addresses->count() }}</strong>
           </div>
           <div class="account-hub-metric">
-            <span>Metode Pembayaran</span>
-            <strong>{{ $paymentMethods->count() }}</strong>
+            <span>Email Checkout</span>
+            <strong>{{ $checkoutProfile->email ?: auth()->user()->email }}</strong>
           </div>
           <div class="account-hub-metric">
             <span>HP Utama</span>
@@ -50,7 +50,6 @@
         <div class="account-hub-tabs">
           <a href="{{ route('account.settings', ['tab' => 'biodata']) }}" class="account-hub-tab{{ $activeTab === 'biodata' ? ' is-active' : '' }}">Biodata Diri</a>
           <a href="{{ route('account.settings', ['tab' => 'addresses']) }}" class="account-hub-tab{{ $activeTab === 'addresses' ? ' is-active' : '' }}">Daftar Alamat</a>
-          <a href="{{ route('account.settings', ['tab' => 'payments']) }}" class="account-hub-tab{{ $activeTab === 'payments' ? ' is-active' : '' }}">Pembayaran</a>
           <a href="{{ route('account.settings', ['tab' => 'security']) }}" class="account-hub-tab{{ $activeTab === 'security' ? ' is-active' : '' }}">Keamanan</a>
         </div>
 
@@ -161,7 +160,7 @@
                 <div class="account-panel-card account-summary-panel">
                   <span class="eyebrow">Sinkronisasi</span>
                   <h3>Terhubung ke checkout</h3>
-                  <p>Email, alamat, dan metode pembayaran akun digunakan kembali saat checkout agar proses belanja lebih cepat dan konsisten.</p>
+                  <p>Email dan alamat akun digunakan kembali saat checkout agar proses belanja lebih cepat dan konsisten.</p>
                 </div>
               </div>
             </div>
@@ -230,84 +229,6 @@
                   @endforeach
                 </div>
               @endif
-            </div>
-          @endif
-
-          @if ($activeTab === 'payments')
-            <div class="account-grid account-grid-payments">
-              <div class="account-panel-card">
-                <div class="account-panel-head">
-                  <div>
-                    <span class="eyebrow">Pembayaran</span>
-                    <h3>Metode pembayaran</h3>
-                  </div>
-                  <button type="button" class="btn btn-primary" data-ui-modal-open="payment-create-modal">Tambah Metode</button>
-                </div>
-
-                @if ($paymentMethods->isEmpty())
-                  <div class="account-empty-state">
-                    <h4>Belum ada metode pembayaran tersimpan.</h4>
-                    <p>Tambahkan metode pembayaran agar proses checkout bisa langsung memilih opsi yang paling sesuai.</p>
-                  </div>
-                @else
-                  <div class="account-card-grid">
-                    @foreach ($paymentMethods as $method)
-                      <div class="account-data-card{{ $method->is_default ? ' is-highlighted' : '' }}">
-                        <div class="account-data-card-head">
-                          <div>
-                            <h4>{{ $method->provider_name }}</h4>
-                            <p>{{ $method->account_name ?: auth()->user()->name }}</p>
-                          </div>
-                          <div class="account-badges">
-                            @if ($method->is_default)
-                              <span class="account-badge account-badge-success">Utama</span>
-                            @endif
-                            <span class="account-badge account-badge-muted">{{ $method->status_label }}</span>
-                          </div>
-                        </div>
-
-                        <div class="account-data-card-body">
-                          <p><strong>Tipe</strong><br>{{ ucwords(str_replace('_', ' ', $method->method_type)) }}</p>
-                          <p><strong>Referensi</strong><br>{{ $method->masked_reference }}</p>
-                        </div>
-
-                        <div class="account-data-card-actions">
-                          @if (! $method->is_default)
-                            <form method="POST" action="{{ route('account.settings.update') }}">
-                              @csrf
-                              <input type="hidden" name="action" value="payment_default">
-                              <input type="hidden" name="active_tab" value="payments">
-                              <input type="hidden" name="payment_method_id" value="{{ $method->id }}">
-                              <button type="submit" class="btn btn-link">Jadikan Utama</button>
-                            </form>
-                          @endif
-                          <button type="button" class="btn btn-link" data-ui-modal-open="payment-edit-modal-{{ $method->id }}">Ubah</button>
-                          <form method="POST" action="{{ route('account.settings.update') }}" onsubmit="return confirm('Hapus metode pembayaran ini?');">
-                            @csrf
-                            <input type="hidden" name="action" value="payment_delete">
-                            <input type="hidden" name="active_tab" value="payments">
-                            <input type="hidden" name="payment_method_id" value="{{ $method->id }}">
-                            <button type="submit" class="btn btn-link text-danger">Hapus</button>
-                          </form>
-                        </div>
-                      </div>
-                    @endforeach
-                  </div>
-                @endif
-              </div>
-
-              <div class="account-panel-card account-summary-panel">
-                <span class="eyebrow">Provider Pembayaran</span>
-                <h3>Opsi yang tersedia</h3>
-                <div class="account-provider-list">
-                  @foreach ($paymentProviderOptions as $provider)
-                    <div class="account-provider-item">
-                      <strong>{{ $provider['name'] }}</strong>
-                      <p>{{ $provider['description'] }}</p>
-                    </div>
-                  @endforeach
-                </div>
-              </div>
             </div>
           @endif
 
@@ -387,32 +308,6 @@
       'activeModal' => $activeModal,
       'errorBag' => $errors->getBag('address_update_' . $address->id),
       'address' => $address,
-    ])
-  @endforeach
-
-  @include('account.partials.payment_modal', [
-    'modalId' => 'payment-create-modal',
-    'title' => 'Tambah Metode Pembayaran',
-    'submitLabel' => 'Simpan Metode',
-    'actionValue' => 'payment_create',
-    'activeTab' => 'payments',
-    'activeModal' => $activeModal,
-    'errorBag' => $errors->getBag('payment_create'),
-    'paymentMethod' => null,
-    'paymentProviderOptions' => $paymentProviderOptions,
-  ])
-
-  @foreach ($paymentMethods as $method)
-    @include('account.partials.payment_modal', [
-      'modalId' => 'payment-edit-modal-' . $method->id,
-      'title' => 'Ubah Metode Pembayaran',
-      'submitLabel' => 'Simpan Perubahan',
-      'actionValue' => 'payment_update',
-      'activeTab' => 'payments',
-      'activeModal' => $activeModal,
-      'errorBag' => $errors->getBag('payment_update_' . $method->id),
-      'paymentMethod' => $method,
-      'paymentProviderOptions' => $paymentProviderOptions,
     ])
   @endforeach
 @endsection

@@ -14,14 +14,14 @@
     <link href="{{ asset('theme/css/navbar-static-top.css') }}" rel="stylesheet">
     <link href="{{ asset('theme/css/custom.css') }}" rel="stylesheet">
   </head>
-  <body class="backoffice-body">
-    <div class="backoffice-shell">
+  <body class="admin-body">
+    <div class="admin-shell">
       @include('partials.admin.sidebar')
-      <button type="button" class="backoffice-sidebar-backdrop" data-backoffice-sidebar-close aria-label="Close sidebar"></button>
-      <div class="backoffice-main">
+      <button type="button" class="admin-sidebar-backdrop" data-admin-sidebar-close aria-label="Close sidebar"></button>
+      <div class="admin-main">
         @include('partials.admin.topbar')
-        <main class="backoffice-content">
-          <div class="backoffice-flash-stack">
+        <main class="admin-content">
+          <div class="admin-flash-stack">
             @foreach (['success', 'info', 'error'] as $flashType)
               @if (session($flashType))
                 <div class="alert alert-{{ $flashType === 'error' ? 'danger' : $flashType }} alert-dismissible flash-banner" role="alert">
@@ -35,7 +35,7 @@
         </main>
       </div>
     </div>
-    <div id="backoffice-modal"></div>
+    <div id="admin-modal"></div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ asset('theme/js/bootstrap.min.js') }}"></script>

@@ -52,7 +52,7 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         if ($request->user()?->is_staff) {
-            return redirect()->route('backoffice.dashboard');
+            return redirect()->route('admin.dashboard');
         }
 
         return redirect()->to($this->resolveNext($request->input('next')));

@@ -11,7 +11,7 @@ use App\Models\ProductSpecification;
 use App\Models\Variation;
 use Illuminate\Database\Seeder;
 
-class DemoCatalogSeeder extends Seeder
+class CatalogSeeder extends Seeder
 {
     public function run(): void
     {

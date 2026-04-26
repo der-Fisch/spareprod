@@ -12,7 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'redirect_staff_to_backoffice' => \App\Http\Middleware\RedirectStaffToBackoffice::class,
+            'redirect_staff_to_admin' => \App\Http\Middleware\RedirectStaffToAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('email')->unique();
-            $table->string('braintree_id')->nullable();
             $table->timestamps();
         });
     }

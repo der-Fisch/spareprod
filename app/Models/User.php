@@ -71,11 +71,6 @@ class User extends Authenticatable
         return $this->hasOne(UserCheckout::class);
     }
 
-    public function paymentMethods(): HasMany
-    {
-        return $this->hasMany(UserPaymentMethod::class);
-    }
-
     public function getNameAttribute(): string
     {
         return trim($this->first_name . ' ' . $this->last_name) ?: $this->username;

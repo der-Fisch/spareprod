@@ -4,7 +4,7 @@
   }
 
   function closeAdminSidebar() {
-    $("body").removeClass("backoffice-sidebar-open");
+    $("body").removeClass("admin-sidebar-open");
   }
 
   function currentNavbarHeight() {
@@ -53,11 +53,11 @@
       closePublicSidebar();
     });
 
-    $(document).on("click", "[data-backoffice-sidebar-toggle]", function () {
-      $("body").toggleClass("backoffice-sidebar-open");
+    $(document).on("click", "[data-admin-sidebar-toggle]", function () {
+      $("body").toggleClass("admin-sidebar-open");
     });
 
-    $(document).on("click", "[data-backoffice-sidebar-close]", function () {
+    $(document).on("click", "[data-admin-sidebar-close]", function () {
       closeAdminSidebar();
     });
 

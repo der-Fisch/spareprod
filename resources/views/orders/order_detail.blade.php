@@ -6,7 +6,7 @@
   <section class="page-hero page-hero-compact">
     <span class="eyebrow">Order Detail</span>
     <h1>Order #{{ $order->order_id ?: $order->id }}</h1>
-    <p>Tinjau ringkasan transaksi, alamat pengiriman, dan metode pembayaran pada halaman ini.</p>
+    <p>Tinjau ringkasan transaksi dan alamat pengiriman pada halaman ini.</p>
   </section>
 
   <div class="col-md-8 col-md-offset-2">
@@ -16,11 +16,7 @@
         <strong>{{ $order->status_label }}</strong>
       </div>
       <div class="alert alert-info">
-        @if ($order->payment_method === 'cod')
-          Pesanan COD sudah dibuat. Simpan detail order ini sebagai acuan pengiriman dan pembayaran saat barang diterima.
-        @else
-          Pembayaran melalui <b>{{ $order->payment_method_label }}</b> sudah tercatat. Detail order ini bisa dipakai sebagai referensi transaksi.
-        @endif
+        Pesanan COD sudah dibuat. Simpan detail order ini sebagai acuan pengiriman dan pembayaran saat barang diterima.
       </div>
       @include('orders.order_summary_short', ['order' => $order])
       <p><b>Simpan halaman ini sebagai referensi order Anda.</b></p>
@@ -36,3 +32,22 @@
     'modalId' => 'invoice-modal-order-detail-' . $order->id,
   ])
 @endsection
+
+@push('scripts')
+  @if (session('checkout_success'))
+    <script>
+      (function () {
+        if (!window.Swal) {
+          return;
+        }
+
+        window.Swal.fire({
+          icon: 'success',
+          title: 'Pesanan berhasil dibuat',
+          text: @json(session('checkout_success')),
+          confirmButtonText: 'Oke'
+        });
+      })();
+    </script>
+  @endif
+@endpush

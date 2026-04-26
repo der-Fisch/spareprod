@@ -1,12 +1,12 @@
 (function ($, window) {
   function openModal(html) {
-    $("#backoffice-modal").html(html);
+    $("#admin-modal").html(html);
     $("body").addClass("modal-open");
-    window.AdminFormWidgets.init($("#backoffice-modal"));
+    window.AdminFormWidgets.init($("#admin-modal"));
   }
 
   function closeModal() {
-    $("#backoffice-modal").empty();
+    $("#admin-modal").empty();
     $("body").removeClass("modal-open");
   }
 
@@ -61,8 +61,8 @@
     closeModal();
   });
 
-  $(document).on("click", ".backoffice-modal", function (event) {
-    if ($(event.target).is(".backoffice-modal")) {
+  $(document).on("click", ".admin-modal", function (event) {
+    if ($(event.target).is(".admin-modal")) {
       closeModal();
     }
   });

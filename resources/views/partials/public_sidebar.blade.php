@@ -28,7 +28,7 @@
       <span>Settings</span>
     </a>
     @if (auth()->user()?->is_staff)
-      <a class="public-sidebar-link{{ request()->routeIs('backoffice.*') ? ' is-active' : '' }}" href="{{ route('backoffice.dashboard') }}">
+      <a class="public-sidebar-link{{ request()->routeIs('admin.*') ? ' is-active' : '' }}" href="{{ route('admin.dashboard') }}">
         <i class="fa fa-dashboard"></i>
         <span>Panel Admin</span>
       </a>

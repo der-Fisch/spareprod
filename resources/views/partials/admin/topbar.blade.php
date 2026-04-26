@@ -1,10 +1,10 @@
-<header class="backoffice-topbar">
-  <button type="button" class="sidebar-toggle-button" data-backoffice-sidebar-toggle aria-label="Toggle admin sidebar">
+<header class="admin-topbar">
+  <button type="button" class="sidebar-toggle-button" data-admin-sidebar-toggle aria-label="Toggle admin sidebar">
     <span></span>
     <span></span>
     <span></span>
   </button>
-  <div class="backoffice-topbar-user dropdown">
+  <div class="admin-topbar-user dropdown">
     <a href="#" class="dropdown-toggle nav-user-trigger" data-toggle="dropdown" role="button" aria-expanded="false">
       <span class="nav-user-avatar">{{ avatar_initials(auth()->user()) }}</span>
       <span class="nav-user-copy">

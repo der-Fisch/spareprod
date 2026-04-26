@@ -98,60 +98,6 @@ class CheckoutService
         }
     }
 
-    public function applyCheckoutPaymentSelection(Request $request, Order $order, array $validated): void
-    {
-        $paymentMethod = $validated['payment_method'] ?? $order->payment_method;
-
-        if (! $paymentMethod) {
-            return;
-        }
-
-        if ($paymentMethod === 'cod') {
-            $order->payment_method = 'cod';
-            $order->userPaymentMethod()->dissociate();
-            $order->save();
-
-            return;
-        }
-
-        $user = $request->user();
-
-        if (! $user) {
-            $order->payment_method = 'prepaid';
-            $order->userPaymentMethod()->dissociate();
-            $order->save();
-
-            return;
-        }
-
-        $selectedPaymentMethod = null;
-
-        if (! empty($validated['user_payment_method_id'])) {
-            $selectedPaymentMethod = $user->paymentMethods()->whereKey($validated['user_payment_method_id'])->first();
-        } elseif ($order->user_payment_method_id) {
-            $selectedPaymentMethod = $user->paymentMethods()->whereKey($order->user_payment_method_id)->first();
-        }
-
-        if (! $selectedPaymentMethod) {
-            $selectedPaymentMethod = $user->paymentMethods()->orderByDesc('is_default')->latest('id')->first();
-        }
-
-        $order->payment_method = 'prepaid';
-
-        if ($selectedPaymentMethod) {
-            $order->userPaymentMethod()->associate($selectedPaymentMethod);
-        } else {
-            $order->userPaymentMethod()->dissociate();
-        }
-
-        $order->save();
-    }
-
-    public function paymentGatewayReady(Order $order): bool
-    {
-        return filled($order->user?->client_token);
-    }
-
     public function finalizeOrder(Order $order, Cart $cart, Collection $selectedItems): void
     {
         DB::transaction(function () use ($order, $cart, $selectedItems) {
@@ -190,12 +136,9 @@ class CheckoutService
                 $order->order_id = 'SSK-' . strtoupper(Str::random(8));
             }
 
-            if ($order->payment_method === 'prepaid') {
-                $order->markCompleted($order->order_id);
-            } else {
-                $order->status = 'created';
-                $order->save();
-            }
+            $order->payment_method = 'cod';
+            $order->status = 'created';
+            $order->save();
 
             CartItem::query()->whereKey($lockedItems->modelKeys())->delete();
         });

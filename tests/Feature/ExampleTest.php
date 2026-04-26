@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use Database\Seeders\DemoCatalogSeeder;
+use Database\Seeders\CatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -12,7 +12,7 @@ class ExampleTest extends TestCase
 
     public function test_the_application_returns_a_successful_response(): void
     {
-        $this->seed(DemoCatalogSeeder::class);
+        $this->seed(CatalogSeeder::class);
 
         $response = $this->get('/');
 

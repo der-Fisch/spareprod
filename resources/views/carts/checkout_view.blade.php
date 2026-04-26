@@ -5,8 +5,8 @@
 @section('content')
   <section class="page-hero page-hero-compact">
     <span class="eyebrow">Checkout</span>
-    <h1>Pastikan alamat, item, dan metode pembayaran sudah sesuai.</h1>
-    <p>Halaman checkout sekarang menampilkan alamat aktif, item yang dipilih dari keranjang, dan opsi pembayaran dalam satu tampilan yang lebih jelas.</p>
+    <h1>Pastikan alamat dan item checkout sudah sesuai.</h1>
+    <p>Checkout saat ini disederhanakan ke satu alur pembayaran COD agar proses pemesanan lebih ringkas dan mudah dipahami.</p>
   </section>
 
   @if (! $user_can_continue)
@@ -58,8 +58,6 @@
   @else
     @php
       $checkoutItems = $order->presentedItems();
-      $selectedPaymentMethodId = (int) old('user_payment_method_id', $order->user_payment_method_id);
-      $selectedPaymentMode = old('payment_method', $order->payment_method ?: ($payment_methods->isNotEmpty() ? 'prepaid' : 'cod'));
     @endphp
 
     <form method="POST" action="{{ route('checkout.final') }}" class="checkout-shell" id="checkout-form">
@@ -129,53 +127,19 @@
           <div class="checkout-card-head checkout-card-head-stack">
             <div>
               <span class="eyebrow">Pembayaran</span>
-              <h2>Pilih cara bayar</h2>
+              <h2>Metode pembayaran aktif</h2>
             </div>
-            <p>Pilih COD atau metode pembayaran yang sudah tersimpan di akun Anda.</p>
+            <p>Checkout menggunakan metode pembayaran COD agar proses pemesanan tetap cepat dan jelas.</p>
           </div>
 
           <div class="checkout-payment-mode-list">
-            <label class="checkout-payment-mode @if($selectedPaymentMode === 'prepaid') is-active @endif">
-              <input type="radio" name="payment_method" value="prepaid" @checked($selectedPaymentMode === 'prepaid') @disabled($payment_methods->isEmpty())>
-              <span class="checkout-payment-mode-copy">
-                <strong>Bayar Sekarang</strong>
-                <small>Pilih metode pembayaran yang sudah tersimpan di akun.</small>
-              </span>
-            </label>
-
-            <div class="checkout-payment-methods @if($payment_methods->isEmpty()) is-empty @endif">
-              @forelse ($payment_methods as $paymentMethod)
-                <label class="checkout-payment-method @if($selectedPaymentMethodId === $paymentMethod->id && $selectedPaymentMode === 'prepaid') is-active @endif">
-                  <input type="radio" name="user_payment_method_id" value="{{ $paymentMethod->id }}" @checked($selectedPaymentMethodId === $paymentMethod->id)>
-                  <span class="checkout-payment-method-copy">
-                    <strong>{{ $paymentMethod->provider_name }}</strong>
-                    <small>{{ strtoupper($paymentMethod->method_type) }} • {{ $paymentMethod->masked_reference }}</small>
-                  </span>
-                  <span class="table-chip {{ $paymentMethod->status === 'connected' ? 'table-chip-success' : 'table-chip-warning' }}">{{ $paymentMethod->status_label }}</span>
-                </label>
-              @empty
-                <div class="checkout-payment-empty">
-                  <p>Metode pembayaran prepaid belum diatur.</p>
-                  @auth
-                    <a href="{{ route('account.settings', ['tab' => 'payments']) }}" class="btn btn-outline btn-sm">Atur di Settings</a>
-                  @else
-                    <p class="checkout-helper-text">Login dulu untuk mengatur metode pembayaran non-COD.</p>
-                  @endauth
-                </div>
-              @endforelse
-            </div>
-
-            <label class="checkout-payment-mode @if($selectedPaymentMode === 'cod') is-active @endif">
-              <input type="radio" name="payment_method" value="cod" @checked($selectedPaymentMode === 'cod')>
+            <div class="checkout-payment-mode is-active">
               <span class="checkout-payment-mode-copy">
                 <strong>COD</strong>
                 <small>Bayar saat barang diterima atau sesuai konfirmasi admin.</small>
               </span>
-            </label>
+            </div>
           </div>
-
-          @error('payment_method')<p class="text-danger">{{ $message }}</p>@enderror
-          @error('user_payment_method_id')<p class="text-danger">{{ $message }}</p>@enderror
 
           <div class="checkout-divider"></div>
 
@@ -194,14 +158,10 @@
             </div>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block" id="checkout-submit-button">
-            {{ $selectedPaymentMode === 'cod' ? 'Buat Pesanan COD' : 'Bayar Sekarang' }}
-          </button>
+          <button type="submit" class="btn btn-primary btn-block" id="checkout-submit-button">Buat Pesanan</button>
 
-          <p class="checkout-helper-text" id="checkout-submit-help">
-            {{ $selectedPaymentMode === 'cod'
-              ? 'Pesanan akan dibuat lebih dulu, lalu pembayaran dilakukan saat pengiriman atau penerimaan.'
-              : 'Pembayaran akan diproses menggunakan metode yang Anda pilih.' }}
+          <p class="checkout-helper-text">
+            Pesanan akan dibuat lebih dulu, lalu pembayaran dilakukan saat pengiriman atau penerimaan.
           </p>
         </div>
       </aside>
@@ -213,34 +173,45 @@
   @if ($user_can_continue)
     <script>
       (function ($) {
-        function syncCheckoutPaymentUi() {
-          var selectedMode = $('input[name="payment_method"]:checked').val() || 'cod';
-          var selectedMethod = $('input[name="user_payment_method_id"]:checked').val();
+        var checkoutForm = $('#checkout-form');
+        var submitButton = $('#checkout-submit-button');
 
-          $('.checkout-payment-mode').removeClass('is-active');
-          $('input[name="payment_method"]:checked').closest('.checkout-payment-mode').addClass('is-active');
-
-          $('.checkout-payment-method').removeClass('is-active');
-          if (selectedMethod && selectedMode === 'prepaid') {
-            $('input[name="user_payment_method_id"]:checked').closest('.checkout-payment-method').addClass('is-active');
-          }
-
-          if (selectedMode === 'cod') {
-            $('#checkout-submit-button').text('Buat Pesanan COD');
-            $('#checkout-submit-help').text('Pesanan akan dibuat lebih dulu, lalu pembayaran dilakukan saat pengiriman atau penerimaan.');
-          } else {
-            $('#checkout-submit-button').text('Bayar Sekarang');
-            $('#checkout-submit-help').text('Pembayaran akan diproses menggunakan metode yang Anda pilih.');
-          }
+        if (!checkoutForm.length) {
+          return;
         }
 
-        $(document).on('change', 'input[name="payment_method"]', syncCheckoutPaymentUi);
-        $(document).on('change', 'input[name="user_payment_method_id"]', function () {
-          $('input[name="payment_method"][value="prepaid"]').prop('checked', true);
-          syncCheckoutPaymentUi();
-        });
+        checkoutForm.on('submit', function (event) {
+          if (checkoutForm.data('confirmed') === true) {
+            submitButton.prop('disabled', true).text('Memproses...');
+            return;
+          }
 
-        syncCheckoutPaymentUi();
+          event.preventDefault();
+
+          if (!window.Swal) {
+            checkoutForm.data('confirmed', true);
+            checkoutForm.trigger('submit');
+            return;
+          }
+
+          window.Swal.fire({
+            icon: 'question',
+            title: 'Buat pesanan sekarang?',
+            text: 'Pastikan alamat pengiriman dan item yang dipilih sudah benar.',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, buat pesanan',
+            cancelButtonText: 'Belum',
+            reverseButtons: true,
+            focusCancel: true
+          }).then(function (result) {
+            if (!result.isConfirmed) {
+              return;
+            }
+
+            checkoutForm.data('confirmed', true);
+            checkoutForm.trigger('submit');
+          });
+        });
       })(jQuery);
     </script>
   @endif

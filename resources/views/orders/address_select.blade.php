@@ -6,7 +6,7 @@
   <section class="page-hero page-hero-compact">
     <span class="eyebrow">Checkout</span>
     <h1>Pilih alamat pengiriman untuk pesanan ini.</h1>
-    <p>Alamat dipilih lebih dulu, lalu metode pembayaran ditentukan di halaman checkout.</p>
+    <p>Alamat dipilih lebih dulu, lalu pesanan COD dikonfirmasi di halaman checkout.</p>
   </section>
 
   <div class="address-selection-shell">

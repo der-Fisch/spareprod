@@ -20,7 +20,6 @@ class Order extends Model
         'kode_produk',
         'jumlah',
         'user_checkout_id',
-        'user_payment_method_id',
         'billing_address_id',
         'shipping_address_id',
         'shipping_total_price',
@@ -105,11 +104,6 @@ class Order extends Model
         return $this->belongsTo(UserCheckout::class, 'user_checkout_id');
     }
 
-    public function userPaymentMethod(): BelongsTo
-    {
-        return $this->belongsTo(UserPaymentMethod::class, 'user_payment_method_id');
-    }
-
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
@@ -125,27 +119,9 @@ class Order extends Model
         return $this->belongsTo(UserAddress::class, 'shipping_address_id');
     }
 
-    public function markCompleted(?string $orderId = null): void
-    {
-        $this->status = 'paid';
-        if ($orderId && ! $this->order_id) {
-            $this->order_id = $orderId;
-            $this->id_pembelian = $orderId;
-        }
-        $this->save();
-    }
-
     public function getPaymentMethodLabelAttribute(): string
     {
-        if ($this->payment_method === 'prepaid' && $this->userPaymentMethod) {
-            return $this->userPaymentMethod->provider_name;
-        }
-
-        return match ($this->payment_method) {
-            'cod' => 'COD',
-            'prepaid' => 'Bayar Sekarang',
-            default => ucfirst((string) $this->payment_method),
-        };
+        return 'COD';
     }
 
     public function getStatusLabelAttribute(): string
@@ -157,6 +133,11 @@ class Order extends Model
             'refunded' => 'Refunded',
             default => ucfirst((string) $this->status),
         };
+    }
+
+    public function isCod(): bool
+    {
+        return ($this->payment_method ?? 'cod') === 'cod';
     }
 
     public function presentedItems()

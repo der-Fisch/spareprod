@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\UserAddress;
 use App\Models\UserCheckout;
-use App\Models\UserPaymentMethod;
 
 class AccountSettingsService
 {
@@ -54,7 +53,7 @@ class AccountSettingsService
 
     public function resolveActiveTab(string $tab): string
     {
-        $allowedTabs = ['biodata', 'addresses', 'payments', 'security'];
+        $allowedTabs = ['biodata', 'addresses', 'security'];
 
         return in_array($tab, $allowedTabs, true) ? $tab : 'biodata';
     }
@@ -86,70 +85,5 @@ class AccountSettingsService
 
         $checkout->addresses()->whereKeyNot($selectedAddress->id)->update(['is_default' => false]);
         $selectedAddress->forceFill(['is_default' => true])->save();
-    }
-
-    public function paymentProviderOptions(): array
-    {
-        return [
-            'bca_va' => [
-                'name' => 'BCA Virtual Account',
-                'type' => 'virtual_account',
-                'description' => 'Pembayaran virtual account BCA untuk checkout.',
-            ],
-            'bri_va' => [
-                'name' => 'BRI Virtual Account',
-                'type' => 'virtual_account',
-                'description' => 'Pembayaran virtual account BRI untuk checkout.',
-            ],
-            'mandiri_va' => [
-                'name' => 'Mandiri Virtual Account',
-                'type' => 'virtual_account',
-                'description' => 'Pembayaran virtual account Mandiri untuk checkout.',
-            ],
-            'gopay' => [
-                'name' => 'GoPay',
-                'type' => 'ewallet',
-                'description' => 'Dompet digital untuk pembayaran yang cepat dan praktis.',
-            ],
-            'qris' => [
-                'name' => 'QRIS',
-                'type' => 'qris',
-                'description' => 'Pembayaran QRIS yang fleksibel untuk berbagai aplikasi.',
-            ],
-            'alfamart' => [
-                'name' => 'Alfamart / Alfamidi / Lawson / Dan+Dan',
-                'type' => 'retail',
-                'description' => 'Pembayaran melalui gerai retail yang bekerja sama.',
-            ],
-        ];
-    }
-
-    public function normalizePaymentPayload(array $validated, User $user): array
-    {
-        $provider = $this->paymentProviderOptions()[$validated['provider_code']];
-
-        return [
-            'provider_code' => $validated['provider_code'],
-            'provider_name' => $provider['name'],
-            'method_type' => $provider['type'],
-            'account_name' => $validated['account_name'] ?? $user->name,
-            'account_reference' => $validated['account_reference'] ?? null,
-            'status' => 'demo_ready',
-            'is_default' => ! $user->paymentMethods()->exists() || ! empty($validated['is_default']),
-        ];
-    }
-
-    public function applyDefaultPaymentMethod(User $user, UserPaymentMethod $selectedMethod, bool $shouldBeDefault): void
-    {
-        if (! $shouldBeDefault) {
-            if (! $user->paymentMethods()->where('is_default', true)->exists()) {
-                $selectedMethod->forceFill(['is_default' => true])->save();
-            }
-
-            return;
-        }
-
-        $user->paymentMethods()->whereKeyNot($selectedMethod->id)->update(['is_default' => false]);
-        $selectedMethod->forceFill(['is_default' => true])->save();
     }
 }

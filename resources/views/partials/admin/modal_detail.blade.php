@@ -1,4 +1,4 @@
-<div class="modal fade in backoffice-modal" style="display:block;">
+<div class="modal fade in admin-modal" style="display:block;">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">

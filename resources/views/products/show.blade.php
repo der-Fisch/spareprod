@@ -10,7 +10,6 @@
       @php($hasBrandData = filled($product->brand_name) || filled($product->brand_type))
       @php($hasTechnicalSpecs = !empty($product->technical_specs))
       @php($hasWarranty = filled($product->warranty_label))
-      @php($hasRating = filled($product->rating_value))
       <div class="product-detail-media">
         <div class="product-gallery" data-product-gallery>
           <div class="product-gallery-stage">
@@ -122,14 +121,6 @@
               </div>
             </section>
 
-            @if ($hasRating)
-              <section class="product-overview-panel">
-                <span class="product-section-label">Rating</span>
-                <div class="product-summary-item product-rating-inline">
-                  <strong><i class="fa fa-star"></i> {{ $product->rating_value }}</strong>
-                </div>
-              </section>
-            @endif
           </div>
         </div>
       </div>

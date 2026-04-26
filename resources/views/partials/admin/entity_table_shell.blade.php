@@ -1,4 +1,4 @@
-<div class="backoffice-summary-grid">
+<div class="admin-summary-grid">
   @foreach ($summary_items as $label => $value)
     <article class="summary-mini-card">
       <span>{{ $label }}</span>
@@ -7,21 +7,21 @@
   @endforeach
 </div>
 
-<div class="backoffice-panel backoffice-panel-table">
-  <div class="backoffice-filter-card">
+<div class="admin-panel admin-panel-table">
+  <div class="admin-filter-card">
     <div class="panel-toolbar">
       <div class="panel-toolbar-actions">
-        <form class="backoffice-search-form" method="GET" data-entity-search data-results-target="#entity-table-shell">
+        <form class="admin-search-form" method="GET" data-entity-search data-results-target="#entity-table-shell">
           <i class="fa fa-search"></i>
           <input type="text" name="q" value="{{ $search_query }}" placeholder="Cari {{ strtolower($entityConfig['label']) }}">
           <button type="submit" class="btn btn-ghost">Cari</button>
         </form>
-        <a href="{{ route('backoffice.entity.list', ['entity' => $entity]) }}" class="backoffice-reset-link" data-entity-page>Reset</a>
+        <a href="{{ route('admin.entity.list', ['entity' => $entity]) }}" class="admin-reset-link" data-entity-page>Reset</a>
       </div>
     </div>
   </div>
 
-  <div class="backoffice-table-card">
+  <div class="admin-table-card">
     <div class="table-card-header">
       <div>
         <span class="eyebrow">Data List</span>

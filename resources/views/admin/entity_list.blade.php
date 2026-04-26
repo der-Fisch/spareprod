@@ -3,15 +3,15 @@
 @section('title', $page_title . ' | Admin')
 
 @section('content')
-  <section class="backoffice-entity-header">
-    <div class="backoffice-entity-copy">
+  <section class="admin-entity-header">
+    <div class="admin-entity-copy">
       <span class="eyebrow">Manajemen {{ $entityConfig['singular'] }}</span>
       <h1>{{ $page_title }}</h1>
       <p>{{ $page_description }}</p>
     </div>
     @if ($entityConfig['can_create'])
-      <div class="backoffice-entity-action">
-        <a href="{{ route('backoffice.entity.modal.create', ['entity' => $entity, 'mode' => 'create']) }}" class="btn btn-primary" data-modal-open>Tambah {{ $entityConfig['singular'] }}</a>
+      <div class="admin-entity-action">
+        <a href="{{ route('admin.entity.modal.create', ['entity' => $entity, 'mode' => 'create']) }}" class="btn btn-primary" data-modal-open>Tambah {{ $entityConfig['singular'] }}</a>
       </div>
     @endif
   </section>

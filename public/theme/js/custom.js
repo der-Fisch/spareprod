@@ -26,7 +26,7 @@
   }
 
   function flashContainer() {
-    return $(".public-flash-stack, .backoffice-flash-stack").first();
+    return $(".public-flash-stack, .admin-flash-stack").first();
   }
 
   function showFlashMessage(message, type) {
@@ -145,7 +145,7 @@
   window.showFlashMessage = showFlashMessage;
   window.showCartSuccessAlert = showCartSuccessAlert;
   window.showAdminSuccessAlert = showAdminSuccessAlert;
-  window.showBackofficeSuccessAlert = showAdminSuccessAlert;
+  window.showAdminSuccessAlert = showAdminSuccessAlert;
   window.updateCartItemCount = updateCartItemCount;
 
   $(document).ready(function () {

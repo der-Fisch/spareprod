@@ -13,9 +13,6 @@ class FinalizeCheckoutRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'payment_method' => ['nullable', 'in:cod,prepaid'],
-            'user_payment_method_id' => ['nullable', 'integer'],
-        ];
+        return [];
     }
 }

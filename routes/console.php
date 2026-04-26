@@ -64,7 +64,6 @@ Artisan::command('db:sqlite-to-mysql
         'account_profiles',
         'user_checkouts',
         'user_addresses',
-        'user_payment_methods',
         'carts',
         'cart_items',
         'orders',

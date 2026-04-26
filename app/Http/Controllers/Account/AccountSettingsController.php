@@ -41,8 +41,6 @@ class AccountSettingsController extends Controller
             'profile' => $profile,
             'checkoutProfile' => $checkoutProfile,
             'addresses' => $checkoutProfile->addresses()->orderByDesc('is_default')->latest('id')->get(),
-            'paymentMethods' => $user->paymentMethods()->orderByDesc('is_default')->latest('id')->get(),
-            'paymentProviderOptions' => $this->settingsService->paymentProviderOptions(),
             'activeModal' => session('active_modal', ''),
             'activeTab' => $activeTab,
         ]);
@@ -68,10 +66,6 @@ class AccountSettingsController extends Controller
             'address_update' => $this->updateAddress($request, $checkoutProfile, $activeTab),
             'address_delete' => $this->deleteAddress($request, $checkoutProfile, $activeTab),
             'address_default' => $this->setDefaultAddress($request, $checkoutProfile, $activeTab),
-            'payment_create' => $this->createPaymentMethod($request, $user, $activeTab),
-            'payment_update' => $this->updatePaymentMethod($request, $user, $activeTab),
-            'payment_delete' => $this->deletePaymentMethod($request, $user, $activeTab),
-            'payment_default' => $this->setDefaultPaymentMethod($request, $user, $activeTab),
             default => $this->redirectToCustomerSettings($activeTab),
         };
     }
@@ -210,72 +204,6 @@ class AccountSettingsController extends Controller
             ->with('success', 'Alamat utama berhasil diperbarui.');
     }
 
-    protected function createPaymentMethod(Request $request, User $user, string $activeTab): RedirectResponse
-    {
-        $validator = $this->paymentValidator($request);
-
-        if ($validator->fails()) {
-            return $this->redirectToCustomerSettings($activeTab)
-                ->withErrors($validator, 'payment_create')
-                ->withInput()
-                ->with('active_modal', 'payment-create-modal');
-        }
-
-        $payload = $this->settingsService->normalizePaymentPayload($validator->validated(), $user);
-        $method = $user->paymentMethods()->create($payload);
-        $this->settingsService->applyDefaultPaymentMethod($user, $method, $payload['is_default']);
-
-        return $this->redirectToCustomerSettings($activeTab)
-            ->with('success', 'Metode pembayaran berhasil ditambahkan.');
-    }
-
-    protected function updatePaymentMethod(Request $request, User $user, string $activeTab): RedirectResponse
-    {
-        $method = $user->paymentMethods()->whereKey($request->input('payment_method_id'))->firstOrFail();
-        $validator = $this->paymentValidator($request);
-        $errorBag = 'payment_update_' . $method->id;
-
-        if ($validator->fails()) {
-            return $this->redirectToCustomerSettings($activeTab)
-                ->withErrors($validator, $errorBag)
-                ->withInput()
-                ->with('active_modal', 'payment-edit-modal-' . $method->id);
-        }
-
-        $payload = $this->settingsService->normalizePaymentPayload($validator->validated(), $user);
-        $method->update($payload);
-        $this->settingsService->applyDefaultPaymentMethod($user, $method, $payload['is_default']);
-
-        return $this->redirectToCustomerSettings($activeTab)
-            ->with('success', 'Metode pembayaran berhasil diperbarui.');
-    }
-
-    protected function deletePaymentMethod(Request $request, User $user, string $activeTab): RedirectResponse
-    {
-        $method = $user->paymentMethods()->whereKey($request->input('payment_method_id'))->firstOrFail();
-        $deletedWasDefault = $method->is_default;
-        $method->delete();
-
-        if ($deletedWasDefault) {
-            $nextDefault = $user->paymentMethods()->latest('id')->first();
-            if ($nextDefault) {
-                $nextDefault->forceFill(['is_default' => true])->save();
-            }
-        }
-
-        return $this->redirectToCustomerSettings($activeTab)
-            ->with('success', 'Metode pembayaran berhasil dihapus.');
-    }
-
-    protected function setDefaultPaymentMethod(Request $request, User $user, string $activeTab): RedirectResponse
-    {
-        $method = $user->paymentMethods()->whereKey($request->input('payment_method_id'))->firstOrFail();
-        $this->settingsService->applyDefaultPaymentMethod($user, $method, true);
-
-        return $this->redirectToCustomerSettings($activeTab)
-            ->with('success', 'Metode pembayaran utama berhasil diperbarui.');
-    }
-
     protected function updateAdminSettings(Request $request, User $user, AccountProfile $profile, string $action): RedirectResponse
     {
         if ($action === 'profile') {
@@ -357,16 +285,6 @@ class AccountSettingsController extends Controller
             'city' => ['required', 'string', 'max:255'],
             'state' => ['required', 'string', 'max:255'],
             'zipcode' => ['required', 'string', 'max:50'],
-            'is_default' => ['nullable', 'boolean'],
-        ]);
-    }
-
-    protected function paymentValidator(Request $request)
-    {
-        return Validator::make($request->all(), [
-            'provider_code' => ['required', Rule::in(array_keys($this->settingsService->paymentProviderOptions()))],
-            'account_name' => ['nullable', 'string', 'max:120'],
-            'account_reference' => ['nullable', 'string', 'max:120'],
             'is_default' => ['nullable', 'boolean'],
         ]);
     }

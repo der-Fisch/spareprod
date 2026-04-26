@@ -14,7 +14,6 @@ class UserCheckout extends Model
     protected $fillable = [
         'user_id',
         'email',
-        'braintree_id',
     ];
 
     public function accountUser(): BelongsTo
@@ -25,10 +24,5 @@ class UserCheckout extends Model
     public function addresses(): HasMany
     {
         return $this->hasMany(UserAddress::class);
-    }
-
-    public function getClientTokenAttribute(): ?string
-    {
-        return null;
     }
 }

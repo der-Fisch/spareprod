@@ -1,20 +1,20 @@
-# Spare Soko
+﻿# Spare Soko
 
-Dokumentasi teknis aplikasi `Spare Soko` yang aktif dikembangkan di folder ini.
+Dokumentasi teknis aplikasi `Spare Soko` yang digunakan dan dipelihara di folder ini.
 
 ## 1. Nama Aplikasi
 
 - `Spare Soko`
 - Nama repository/workspace lokal: `Spareprod Laravel`
 
-Nama `Spare Soko` muncul konsisten pada title halaman Blade, sidebar, navbar, invoice, dan data demo aplikasi.
+Nama `Spare Soko` muncul konsisten pada title halaman Blade, sidebar, navbar, invoice, dan identitas aplikasi.
 
 ## 2. Deskripsi Aplikasi
 
 `Spare Soko` adalah aplikasi web e-commerce spare part kendaraan berbasis Laravel yang menggabungkan:
 
 - `storefront customer` untuk browsing katalog, cart, checkout, dan order history
-- `backoffice admin/staff` untuk mengelola kategori, produk, dan status order
+- `admin admin/staff` untuk mengelola kategori, produk, dan status order
 
 ### Tujuan aplikasi
 
@@ -45,9 +45,9 @@ Aplikasi ini dirancang untuk menyediakan katalog spare part yang lebih terstrukt
 3. Produk ditambahkan ke cart.
 4. User memilih item tertentu yang ingin dibeli.
 5. User checkout sebagai guest atau login.
-6. User memilih alamat dan metode pembayaran.
+6. User memilih alamat pengiriman.
 7. Sistem membuat snapshot order, menghitung total, dan memproses finalisasi.
-8. Admin mengelola data dari backoffice.
+8. Admin mengelola data dari admin.
 
 ## 3. Bahasa Pemrograman
 
@@ -74,11 +74,11 @@ Bahasa yang digunakan di project ini:
 - `Eloquent ORM`
   - akses database dan relasi data memakai pattern `Active Record`
 - `Blade`
-  - server-side rendering untuk halaman publik dan backoffice
+  - server-side rendering untuk halaman publik dan admin
 - `Bootstrap`
   - basis layout dan komponen visual utama
 - `jQuery`
-  - AJAX cart, modal backoffice, live search, widget form dinamis, dan interaksi UI lainnya
+  - AJAX cart, modal admin, live search, widget form dinamis, dan interaksi UI lainnya
 - `SweetAlert2`
   - alert interaktif untuk feedback aksi user
 - `Font Awesome 4.3`
@@ -108,11 +108,11 @@ Aplikasi ini menggunakan:
 - pendekatan `MVC`
 - implementasi yang cenderung `controller-centric`
 
-Artinya, aplikasi tidak dipisah menjadi microservices. Frontend publik, backoffice, auth, checkout, dan data layer semua berada dalam satu project Laravel.
+Artinya, aplikasi tidak dipisah menjadi microservices. Frontend publik, admin, auth, checkout, dan data layer semua berada dalam satu project Laravel.
 
 ### Interaksi frontend dan backend
 
-- frontend publik dan backoffice dirender oleh Blade
+- frontend publik dan admin dirender oleh Blade
 - beberapa route web juga dipakai sebagai endpoint AJAX internal
 - respons dapat berupa:
   - full HTML page
@@ -126,7 +126,7 @@ Project ini tidak memakai `routes/api.php`; interaksi internal tetap berada di `
 1. Request masuk melalui `public/index.php`
 2. Laravel dibootstrap oleh `bootstrap/app.php`
 3. Router membaca definisi di `routes/web.php`
-4. Middleware `redirect_staff_to_backoffice` memisahkan flow staff/admin dari customer
+4. Middleware `redirect_staff_to_admin` memisahkan flow staff/admin dari customer
 5. Controller mengambil data melalui model Eloquent
 6. Model Eloquent menjalankan relasi, accessor, dan event hook domain
 7. View Blade merender output HTML
@@ -151,7 +151,7 @@ Project ini tidak memakai `routes/api.php`; interaksi internal tetap berada di `
 - `Guest checkout`
   - checkout dapat dimulai tanpa login memakai email
 - `Authenticated checkout`
-  - reuse alamat dan metode pembayaran yang tersimpan
+  - reuse alamat akun yang sudah tersimpan
 - `Riwayat order`
   - daftar order dan detail order customer
 - `Invoice modal`
@@ -163,12 +163,10 @@ Project ini tidak memakai `routes/api.php`; interaksi internal tetap berada di `
   - username, email, nama depan, nama belakang, nomor HP, WhatsApp, tanggal lahir, gender
 - `Daftar alamat`
   - create, update, delete, dan set default address
-- `Metode pembayaran`
-  - create, update, delete, dan set default payment method
 - `Keamanan akun`
   - ganti password
 
-### Backoffice
+### Admin
 
 - `Dashboard`
   - KPI produk, kategori, order, revenue rows, recent activity, quick actions
@@ -195,7 +193,7 @@ Project ini tidak memakai `routes/api.php`; interaksi internal tetap berada di `
 ## Analisis Struktur Project
 
 ```text
-laravel/                                                # root aplikasi Laravel untuk storefront + backoffice Spare Soko
+laravel/                                                # root aplikasi Laravel untuk storefront + admin Spare Soko
 ├── .git/                                               # metadata Git repository
 ├── app/                                                # kode PHP inti aplikasi
 │   ├── Http/                                           # layer request/response web
@@ -209,11 +207,11 @@ laravel/                                                # root aplikasi Laravel 
 │   │   │   ├── Account/
 │   │   │   │   └── AccountSettingsController.php       # tab biodata, alamat, pembayaran, keamanan; beda flow admin vs customer
 │   │   │   ├── Auth/
-│   │   │   │   └── AuthController.php                  # login, register, logout, redirect next, redirect staff ke backoffice
-│   │   │   └── Backoffice/
-│   │   │       └── BackofficeController.php            # dashboard admin dan CRUD generik entity categories/products/orders
+│   │   │   │   └── AuthController.php                  # login, register, logout, redirect next, redirect staff ke admin
+│   │   │   └── Admin/
+│   │   │       └── AdminController.php                 # dashboard admin dan CRUD generik entity categories/products/orders
 │   │   └── Middleware/
-│   │       └── RedirectStaffToBackoffice.php           # paksa user staff keluar dari storefront menuju dashboard admin
+│   │       └── RedirectStaffToAdmin.php                # paksa user staff keluar dari storefront menuju dashboard admin
 │   ├── Models/                                         # model Eloquent + relasi + accessor + hook sinkronisasi
 │   │   ├── AccountProfile.php                          # profil tambahan user: WhatsApp, HP, tanggal lahir, gender
 │   │   ├── Brand.php                                   # master brand ERP-style; primary key string
@@ -229,7 +227,6 @@ laravel/                                                # root aplikasi Laravel 
 │   │   ├── User.php                                    # autentikasi user, role admin/customer, relasi profile/cart/payment
 │   │   ├── UserAddress.php                             # alamat shipping/billing milik checkout profile
 │   │   ├── UserCheckout.php                            # profil checkout yang menjembatani guest dan authenticated user
-│   │   ├── UserPaymentMethod.php                       # metode pembayaran demo customer
 │   │   └── Variation.php                               # varian produk + harga efektif + inventory per varian
 │   ├── Providers/
 │   │   └── AppServiceProvider.php                      # register helper global dan share `sharedCartCount` ke semua view
@@ -269,23 +266,21 @@ laravel/                                                # root aplikasi Laravel 
 │   │   ├── 2026_04_06_000013_add_spare_part_fields_to_products_table.php # SKU, OEM, brand, garansi, rating, review_count
 │   │   ├── 2026_04_06_000014_create_product_compatibilities_table.php # kompatibilitas kendaraan
 │   │   ├── 2026_04_06_000015_create_product_specifications_table.php # spesifikasi teknis
-│   │   ├── 2026_04_06_000016_backfill_spare_part_product_profiles.php # backfill profil demo spare part + specs + compatibility
+│   │   ├── 2026_04_06_000016_backfill_spare_part_product_profiles.php # backfill profil awal spare part + specs + compatibility
 │   │   ├── 2026_04_06_000017_create_product_images_table.php # tabel gambar produk
-│   │   ├── 2026_04_06_000018_backfill_product_images.php # backfill galeri gambar produk demo
+│   │   ├── 2026_04_06_000018_backfill_product_images.php # backfill galeri gambar produk awal
 │   │   ├── 2026_04_07_000001_add_payment_method_to_orders_table.php # tambah mode pembayaran order
 │   │   ├── 2026_04_07_100000_add_customer_fields_to_account_profiles_table.php # HP, birth_date, gender
 │   │   ├── 2026_04_07_100100_add_customer_fields_to_user_addresses_table.php # label, recipient, phone, default flag
-│   │   ├── 2026_04_07_100200_create_user_payment_methods_table.php # metode pembayaran customer
 │   │   ├── 2026_04_07_110000_add_is_selected_to_cart_items_table.php # centang item cart untuk partial checkout
 │   │   ├── 2026_04_07_110100_add_checkout_snapshot_totals_to_orders_table.php # subtotal/tax/items total snapshot
 │   │   ├── 2026_04_07_110200_create_order_items_table.php # snapshot item order
-│   │   ├── 2026_04_07_120000_add_user_payment_method_id_to_orders_table.php # relasi order ke payment method user
 │   │   ├── 2026_04_07_130500_align_minimum_erd_structure.php # sinkronisasi ke skema ERP minimum + backfill data
 │   │   └── 2026_04_07_140000_remove_shipping_amounts_from_existing_orders.php # set ongkir lama menjadi 0
 │   ├── seeders/
-│   │   ├── DatabaseSeeder.php                          # memanggil seed katalog dan seed store demo
-│   │   ├── DemoCatalogSeeder.php                       # isi kategori, produk, varian, specs, gambar, compatibility demo
-│   │   └── DemoStoreSeeder.php                         # isi admin demo, customer demo, address, payment, cart, order demo
+│   │   ├── DatabaseSeeder.php                          # memanggil seed katalog dan seed store awal
+│   │   ├── CatalogSeeder.php                           # isi kategori, produk, varian, specs, gambar, dan compatibility awal
+│   │   └── StoreSeeder.php                             # isi akun admin, akun customer, address, cart, dan order awal
 │   └── sql/
 │       └── mysql_primary_data_audit.sql                # query audit hasil copy data SQLite ke MySQL
 ├── public/                                             # document root web server
@@ -295,20 +290,26 @@ laravel/                                                # root aplikasi Laravel 
 │   ├── theme/                                          # asset UI aktif yang benar-benar dipakai Blade
 │   │   ├── css/
 │   │   │   ├── bootstrap.min.css                       # CSS Bootstrap
-│   │   │   ├── custom.css                              # design token, layout publik/backoffice, komponen kustom utama
+│   │   │   ├── custom.css                              # design token, layout publik/admin, komponen kustom utama
 │   │   │   └── navbar-static-top.css                   # styling navbar turunan Bootstrap
 │   │   ├── img/
 │   │   │   ├── marketing1.jpg                          # gambar fallback/global marketing
 │   │   │   ├── mvp_landing_logo.png                    # logo landing/store
-│   │   │   └── products/                               # gambar produk demo katalog
+│   │   │   └── products/                               # gambar produk katalog
 │   │   ├── js/
 │   │   │   ├── bootstrap.min.js                        # JavaScript Bootstrap
-│   │   │   ├── custom.js                               # seluruh interaksi jQuery storefront + backoffice
+│   │   │   ├── custom.js                               # helper global frontend lintas halaman
+│   │   │   ├── layout-shell.js                         # interaksi layout publik/admin
+│   │   │   ├── catalog-page.js                         # filter dan pagination katalog
+│   │   │   ├── product-detail-page.js                  # interaksi halaman detail produk
+│   │   │   ├── cart-page.js                            # interaksi halaman cart
+│   │   │   ├── admin-form-widgets.js                   # widget form admin: multiselect, repeater, preview, currency
+│   │   │   ├── admin-entity-page.js                    # modal AJAX dan refresh tabel admin
 │   │   │   └── ie10-viewport-bug-workaround.js         # skrip kompatibilitas lama Bootstrap
 │   │   └── psd/
 │   │       └── mvp_landing_logo.psd                    # source desain logo
 │   └── uploads/
-│       └── products/                                   # hasil upload gambar produk dari backoffice
+│       └── products/                                   # hasil upload gambar produk dari admin
 ├── resources/                                          # source asset dan view
 │   ├── css/
 │   │   └── app.css                                     # entry Tailwind/Vite; belum jadi jalur styling utama UI aktif
@@ -328,9 +329,8 @@ laravel/                                                # root aplikasi Laravel 
 │       │   ├── settings.blade.php                      # account center customer
 │       │   └── partials/
 │       │       ├── address_modal.blade.php             # modal tambah/edit alamat
-│       │       └── payment_modal.blade.php             # modal tambah/edit metode pembayaran
-│       ├── backoffice/
-│       │   ├── base.blade.php                          # layout backoffice
+│       ├── admin/
+│       │   ├── base.blade.php                          # layout admin
 │       │   ├── dashboard.blade.php                     # dashboard KPI + revenue + recent activity
 │       │   └── entity_list.blade.php                   # shell halaman entity management
 │       ├── carts/
@@ -351,7 +351,7 @@ laravel/                                                # root aplikasi Laravel 
 │       │   ├── public_sidebar.blade.php                # sidebar customer saat login
 │       │   ├── public/
 │       │   │   └── account_modal.blade.php             # modal akses akun
-│       │   └── backoffice/
+│       │   └── admin/
 │       │       ├── entity_table.blade.php              # tabel entity generik
 │       │       ├── entity_table_shell.blade.php        # summary + filter + wrapper tabel
 │       │       ├── modal_delete.blade.php              # modal konfirmasi hapus
@@ -363,10 +363,10 @@ laravel/                                                # root aplikasi Laravel 
 │           ├── _card.blade.php                         # kartu produk katalog/home
 │           ├── _related_card.blade.php                 # kartu produk terkait
 │           ├── index.blade.php                         # katalog produk dengan filter
-│           └── show.blade.php                          # detail produk + gallery + add to cart AJAX
+│           └── show.blade.php                          # detail produk + add to cart AJAX
 ├── routes/
 │   ├── console.php                                     # command `db:sqlite-to-mysql` + command `inspire`
-│   └── web.php                                         # semua route storefront, auth, account, order, dan backoffice
+│   └── web.php                                         # semua route storefront, auth, account, order, dan admin
 ├── storage/                                            # runtime data Laravel
 │   ├── app/
 │   │   ├── private/                                    # storage lokal privat
@@ -383,7 +383,7 @@ laravel/                                                # root aplikasi Laravel 
 │   │   ├── CatalogPagesTest.php                        # test halaman publik katalog dan auth
 │   │   ├── ExampleTest.php                             # smoke test respons home
 │   │   ├── MinimumErdSchemaTest.php                    # validasi skema minimum ERP dan sinkronisasi field mirror
-│   │   └── StorefrontModulesTest.php                   # test cart, settings, backoffice, checkout, inventory
+│   │   └── StorefrontModulesTest.php                   # test cart, settings, admin, checkout, inventory
 │   └── Unit/
 │       └── ExampleTest.php                             # unit test contoh bawaan
 ├── vendor/                                             # seluruh dependency Composer terinstal
@@ -398,7 +398,7 @@ laravel/                                                # root aplikasi Laravel 
 ├── composer.lock                                       # lock versi dependency Composer
 ├── package.json                                        # manifest dependency frontend/dev tooling
 ├── phpunit.xml                                         # konfigurasi PHPUnit; test memakai SQLite in-memory
-├── README.md                                           # dokumentasi project ini
+├── README.md                                           # petunjuk kerja repo ini
 └── vite.config.js                                      # konfigurasi Vite + Laravel plugin
 ```
 
@@ -422,23 +422,23 @@ laravel/                                                # root aplikasi Laravel 
 14. `POST /cart/selection` menyimpan flag `is_selected`.
 15. User lanjut ke `/checkout`.
 16. Jika belum login, user dapat checkout sebagai guest atau login.
-17. Sistem mengambil `UserCheckout`, alamat default, dan payment method jika tersedia.
+17. Sistem mengambil `UserCheckout` dan alamat default yang aktif.
 18. Sistem membuat atau melanjutkan `order` draft terkait `cart`.
 19. Sistem membuat snapshot item ke `order_items`.
 20. User memilih alamat pengiriman.
-21. User memilih pembayaran `cod` atau `prepaid`.
+21. Sistem menyiapkan order dengan metode pembayaran `cod`.
 22. Saat final checkout, sistem memvalidasi data dan memotong stok produk yang dibeli.
 23. Item yang berhasil dibeli dihapus dari cart.
 24. User diarahkan ke detail order di `/orders/{order}`.
 
-### Backoffice admin/staff
+### Admin admin/staff
 
 1. Admin login melalui `/login`.
-2. Setelah login, staff otomatis diarahkan ke `/backoffice`.
+2. Setelah login, staff otomatis diarahkan ke `/admin`.
 3. Admin melihat dashboard KPI, revenue, dan aktivitas terbaru.
 4. Admin membuka entity list seperti `products`, `categories`, atau `orders`.
 5. Modal create/edit/detail/delete dimuat via AJAX.
-6. Form modal dikirim via AJAX dan diproses `BackofficeController`.
+6. Form modal dikirim via AJAX dan diproses `AdminController`.
 7. Tabel dan summary di-refresh tanpa reload penuh.
 
 ## 8. Database
@@ -456,29 +456,213 @@ laravel/                                                # root aplikasi Laravel 
 ### Relasi utama
 
 ```text
-users 1---1 account_profiles
-users 1---N user_payment_methods
-users 1---1 user_checkouts
-user_checkouts 1---N user_addresses
-
-categories N---M products        # via category_product
-categories 1---N products        # via default_category_id / kategori_id
-brand 1---N products
-
-products 1---N variations
-products 1---N product_compatibilities
-products 1---N product_specifications
-products 1---N product_images
-
-carts 1---N cart_items
-variations 1---N cart_items
-
-orders N---1 carts
-orders N---1 user_checkouts
-orders N---1 users               # mirror ERP via user_id
-orders N---1 user_addresses      # billing dan shipping
-orders N---1 user_payment_methods
-orders 1---N order_items
+laravel/                                                # root aplikasi Laravel untuk storefront + admin Spare Soko
+├── .git/                                               # metadata Git repository
+├── app/                                                # kode PHP inti aplikasi
+│   ├── Http/                                           # layer request/response web
+│   │   ├── Controllers/                                # orkestrasi alur bisnis berbasis route
+│   │   │   ├── Controller.php                          # base controller kosong bawaan Laravel
+│   │   │   ├── HomeController.php                      # landing page; ambil featured product + 3 produk aktif acak
+│   │   │   ├── ProductController.php                   # katalog, filter, dan detail produk + related products
+│   │   │   ├── CartController.php                      # cart session/auth, add/update/remove item, AJAX count/selection
+│   │   │   ├── CheckoutController.php                  # guest checkout, address flow, payment selection, finalisasi order
+│   │   │   ├── OrderController.php                     # riwayat order dan detail order customer/guest session
+│   │   │   ├── Account/
+│   │   │   │   └── AccountSettingsController.php       # tab biodata, alamat, pembayaran, keamanan; beda flow admin vs customer
+│   │   │   ├── Auth/
+│   │   │   │   └── AuthController.php                  # login, register, logout, redirect next, redirect staff ke admin
+│   │   │   └── Admin/
+│   │   │       └── AdminController.php                 # dashboard admin dan CRUD generik entity categories/products/orders
+│   │   └── Middleware/
+│   │       └── RedirectStaffToAdmin.php                # paksa user staff keluar dari storefront menuju dashboard admin
+│   ├── Models/                                         # model Eloquent + relasi + accessor + hook sinkronisasi
+│   │   ├── AccountProfile.php                          # profil tambahan user: WhatsApp, HP, tanggal lahir, gender
+│   │   ├── Brand.php                                   # master brand ERP-style; primary key string
+│   │   ├── Cart.php                                    # cart dengan subtotal/tax/total dan accessor selected summary
+│   │   ├── CartItem.php                                # item cart; hitung line total dan refresh total cart via model hook
+│   │   ├── Category.php                                # kategori produk; mirror title <-> nama_kategori
+│   │   ├── Order.php                                   # order header; snapshot total, payment label, status label, mirror ERP
+│   │   ├── OrderItem.php                               # snapshot item order; menjaga histori transaksi stabil
+│   │   ├── Product.php                                 # entitas produk utama; mirror kolom storefront dan ERP minimum
+│   │   ├── ProductCompatibility.php                    # daftar kendaraan yang kompatibel dengan produk
+│   │   ├── ProductImage.php                            # gambar produk + accessor URL fallback
+│   │   ├── ProductSpecification.php                    # spesifikasi teknis produk dalam pasangan label-value
+│   │   ├── User.php                                    # autentikasi user, role admin/customer, relasi profile/cart/payment
+│   │   ├── UserAddress.php                             # alamat shipping/billing milik checkout profile
+│   │   ├── UserCheckout.php                            # profil checkout yang menjembatani guest dan authenticated user
+│   │   └── Variation.php                               # varian produk + harga efektif + inventory per varian
+│   ├── Providers/
+│   │   └── AppServiceProvider.php                      # register helper global dan share `sharedCartCount` ke semua view
+│   └── Support/
+│       └── helpers.php                                 # helper `rupiah`, `rupiah_catalog`, `avatar_initials`, `resolve_path_value`
+├── bootstrap/
+│   ├── app.php                                         # bootstrap Laravel 13; routing, alias middleware, health endpoint `/up`
+│   └── cache/                                          # cache bootstrap/compiled framework
+├── config/                                             # konfigurasi runtime Laravel
+│   ├── app.php                                         # konfigurasi global framework, locale, timezone, provider
+│   ├── auth.php                                        # guard `web`, provider Eloquent `User`, reset password config
+│   ├── cache.php                                       # cache store; env aktif memakai database cache
+│   ├── database.php                                    # koneksi SQLite/MySQL/MariaDB/PgSQL/SQL Server
+│   ├── filesystems.php                                 # disk `local`, `public`, `s3`; upload admin saat ini tetap ke `public/`
+│   ├── logging.php                                     # log channel default `stack -> single`
+│   ├── mail.php                                        # konfigurasi mailer; env aktif memakai `log`
+│   ├── queue.php                                       # queue database sebagai default
+│   ├── services.php                                    # placeholder integrasi Postmark, Resend, SES, Slack
+│   └── session.php                                     # session driver database, cookie, same-site, serialisasi JSON
+├── database/                                           # skema, seed, dan audit SQL
+│   ├── factories/
+│   │   └── UserFactory.php                             # factory user untuk kebutuhan testing/seed Laravel standar
+│   ├── migrations/
+│   │   ├── 0001_01_01_000000_create_users_table.php    # users, password_reset_tokens, sessions
+│   │   ├── 0001_01_01_000001_create_cache_table.php    # cache dan cache_locks berbasis database
+│   │   ├── 0001_01_01_000002_create_jobs_table.php     # jobs, job_batches, failed_jobs untuk queue database
+│   │   ├── 2026_04_06_000003_create_categories_table.php # tabel kategori produk
+│   │   ├── 2026_04_06_000004_create_products_table.php # tabel produk dasar storefront
+│   │   ├── 2026_04_06_000005_create_variations_table.php # tabel varian harga/stok per produk
+│   │   ├── 2026_04_06_000006_create_category_product_table.php # pivot many-to-many category-product
+│   │   ├── 2026_04_06_000007_create_account_profiles_table.php # profil tambahan akun
+│   │   ├── 2026_04_06_000008_create_carts_table.php    # cart header dengan tax config
+│   │   ├── 2026_04_06_000009_create_cart_items_table.php # item cart dan line total
+│   │   ├── 2026_04_06_000010_create_user_checkouts_table.php # profil checkout berbasis email/user
+│   │   ├── 2026_04_06_000011_create_user_addresses_table.php # alamat checkout awal
+│   │   ├── 2026_04_06_000012_create_orders_table.php   # header order awal
+│   │   ├── 2026_04_06_000013_add_spare_part_fields_to_products_table.php # SKU, OEM, brand, garansi, rating, review_count
+│   │   ├── 2026_04_06_000014_create_product_compatibilities_table.php # kompatibilitas kendaraan
+│   │   ├── 2026_04_06_000015_create_product_specifications_table.php # spesifikasi teknis
+│   │   ├── 2026_04_06_000016_backfill_spare_part_product_profiles.php # backfill profil awal spare part + specs + compatibility
+│   │   ├── 2026_04_06_000017_create_product_images_table.php # tabel gambar produk
+│   │   ├── 2026_04_06_000018_backfill_product_images.php # backfill galeri gambar produk awal
+│   │   ├── 2026_04_07_000001_add_payment_method_to_orders_table.php # tambah mode pembayaran order
+│   │   ├── 2026_04_07_100000_add_customer_fields_to_account_profiles_table.php # HP, birth_date, gender
+│   │   ├── 2026_04_07_100100_add_customer_fields_to_user_addresses_table.php # label, recipient, phone, default flag
+│   │   ├── 2026_04_07_110000_add_is_selected_to_cart_items_table.php # centang item cart untuk partial checkout
+│   │   ├── 2026_04_07_110100_add_checkout_snapshot_totals_to_orders_table.php # subtotal/tax/items total snapshot
+│   │   ├── 2026_04_07_110200_create_order_items_table.php # snapshot item order
+│   │   ├── 2026_04_07_130500_align_minimum_erd_structure.php # sinkronisasi ke skema ERP minimum + backfill data
+│   │   └── 2026_04_07_140000_remove_shipping_amounts_from_existing_orders.php # set ongkir lama menjadi 0
+│   ├── seeders/
+│   │   ├── DatabaseSeeder.php                          # memanggil seed katalog dan seed store awal
+│   │   ├── CatalogSeeder.php                           # isi kategori, produk, varian, specs, gambar, dan compatibility awal
+│   │   └── StoreSeeder.php                             # isi akun admin, akun customer, address, cart, dan order awal
+│   └── sql/
+│       └── mysql_primary_data_audit.sql                # query audit hasil copy data SQLite ke MySQL
+├── public/                                             # document root web server
+│   ├── favicon.ico                                     # favicon browser
+│   ├── index.php                                       # front controller Laravel
+│   ├── robots.txt                                      # aturan crawler
+│   ├── theme/                                          # asset UI aktif yang benar-benar dipakai Blade
+│   │   ├── css/
+│   │   │   ├── bootstrap.min.css                       # CSS Bootstrap
+│   │   │   ├── custom.css                              # design token, layout publik/admin, komponen kustom utama
+│   │   │   └── navbar-static-top.css                   # styling navbar turunan Bootstrap
+│   │   ├── img/
+│   │   │   ├── marketing1.jpg                          # gambar fallback/global marketing
+│   │   │   ├── mvp_landing_logo.png                    # logo landing/store
+│   │   │   └── products/                               # gambar produk katalog
+│   │   ├── js/
+│   │   │   ├── bootstrap.min.js                        # JavaScript Bootstrap
+│   │   │   ├── custom.js                               # helper global frontend lintas halaman
+│   │   │   ├── layout-shell.js                         # interaksi layout publik/admin
+│   │   │   ├── catalog-page.js                         # filter dan pagination katalog
+│   │   │   ├── product-detail-page.js                  # interaksi halaman detail produk
+│   │   │   ├── cart-page.js                            # interaksi halaman cart
+│   │   │   ├── admin-form-widgets.js                   # widget form admin: multiselect, repeater, preview, currency
+│   │   │   ├── admin-entity-page.js                    # modal AJAX dan refresh tabel admin
+│   │   │   └── ie10-viewport-bug-workaround.js         # skrip kompatibilitas lama Bootstrap
+│   │   └── psd/
+│   │       └── mvp_landing_logo.psd                    # source desain logo
+│   └── uploads/
+│       └── products/                                   # hasil upload gambar produk dari admin
+├── resources/                                          # source asset dan view
+│   ├── css/
+│   │   └── app.css                                     # entry Tailwind/Vite; belum jadi jalur styling utama UI aktif
+│   ├── js/
+│   │   ├── app.js                                      # entry JS Vite; hanya import bootstrap.js
+│   │   └── bootstrap.js                                # set `axios` global + header `X-Requested-With`
+│   └── views/
+│       ├── home.blade.php                              # landing page Spare Soko
+│       ├── welcome.blade.php                           # template Laravel bawaan; tidak dipakai route aktif
+│       ├── layouts/
+│       │   └── app.blade.php                           # layout publik utama
+│       ├── auth/
+│       │   ├── login.blade.php                         # form login
+│       │   └── register.blade.php                      # form registrasi
+│       ├── account/
+│       │   ├── admin_settings.blade.php                # halaman settings khusus admin/staff
+│       │   ├── settings.blade.php                      # account center customer
+│       │   └── partials/
+│       │       ├── address_modal.blade.php             # modal tambah/edit alamat
+│       ├── admin/
+│       │   ├── base.blade.php                          # layout admin
+│       │   ├── dashboard.blade.php                     # dashboard KPI + revenue + recent activity
+│       │   └── entity_list.blade.php                   # shell halaman entity management
+│       ├── carts/
+│       │   ├── checkout_view.blade.php                 # halaman checkout guest/auth
+│       │   ├── empty_cart.blade.php                    # empty state cart
+│       │   └── view.blade.php                          # halaman cart
+│       ├── orders/
+│       │   ├── address_form.blade.php                  # form alamat saat checkout
+│       │   ├── address_select.blade.php                # pilih alamat shipping saat checkout
+│       │   ├── order_detail.blade.php                  # detail order + invoice modal
+│       │   ├── order_list.blade.php                    # daftar order customer
+│       │   ├── order_summary_short.blade.php           # ringkasan order reusable
+│       │   └── partials/
+│       │       └── invoice_modal.blade.php             # modal invoice order
+│       ├── partials/
+│       │   ├── footer.blade.php                        # footer landing page
+│       │   ├── navbar.blade.php                        # navbar publik + auth/cart badge
+│       │   ├── public_sidebar.blade.php                # sidebar customer saat login
+│       │   ├── public/
+│       │   │   └── account_modal.blade.php             # modal akses akun
+│       │   └── admin/
+│       │       ├── entity_table.blade.php              # tabel entity generik
+│       │       ├── entity_table_shell.blade.php        # summary + filter + wrapper tabel
+│       │       ├── modal_delete.blade.php              # modal konfirmasi hapus
+│       │       ├── modal_detail.blade.php              # modal detail entity
+│       │       ├── modal_form.blade.php                # modal form generik categories/products/orders
+│       │       ├── sidebar.blade.php                   # sidebar admin
+│       │       └── topbar.blade.php                    # topbar admin
+│       └── products/
+│           ├── _card.blade.php                         # kartu produk katalog/home
+│           ├── _related_card.blade.php                 # kartu produk terkait
+│           ├── index.blade.php                         # katalog produk dengan filter
+│           └── show.blade.php                          # detail produk + add to cart AJAX
+├── routes/
+│   ├── console.php                                     # command `db:sqlite-to-mysql` + command `inspire`
+│   └── web.php                                         # semua route storefront, auth, account, order, dan admin
+├── storage/                                            # runtime data Laravel
+│   ├── app/
+│   │   ├── private/                                    # storage lokal privat
+│   │   └── public/                                     # storage publik untuk `storage:link`
+│   ├── framework/
+│   │   ├── cache/                                      # cache framework
+│   │   ├── sessions/                                   # session file jika driver file dipakai
+│   │   ├── testing/                                    # artefak testing
+│   │   └── views/                                      # compiled Blade
+│   └── logs/                                           # log aplikasi
+├── tests/                                              # automated test suite
+│   ├── TestCase.php                                    # base test case Laravel
+│   ├── Feature/
+│   │   ├── CatalogPagesTest.php                        # test halaman publik katalog dan auth
+│   │   ├── ExampleTest.php                             # smoke test respons home
+│   │   ├── MinimumErdSchemaTest.php                    # validasi skema minimum ERP dan sinkronisasi field mirror
+│   │   └── StorefrontModulesTest.php                   # test cart, settings, admin, checkout, inventory
+│   └── Unit/
+│       └── ExampleTest.php                             # unit test contoh bawaan
+├── vendor/                                             # seluruh dependency Composer terinstal
+├── .editorconfig                                       # aturan indentasi/encoding lintas editor
+├── .env                                                # konfigurasi lokal aktif; DB saat ini SQLite
+├── .env.example                                        # template environment
+├── .gitattributes                                      # atribut Git
+├── .gitignore                                          # file/folder yang diabaikan Git
+├── .phpunit.result.cache                               # cache hasil eksekusi PHPUnit
+├── artisan                                             # entry CLI Laravel
+├── composer.json                                       # manifest PHP dependency dan script kerja utama
+├── composer.lock                                       # lock versi dependency Composer
+├── package.json                                        # manifest dependency frontend/dev tooling
+├── phpunit.xml                                         # konfigurasi PHPUnit; test memakai SQLite in-memory
+├── README.md                                           # petunjuk kerja repo ini
+└── vite.config.js                                      # konfigurasi Vite + Laravel plugin
 ```
 
 ### Tabel inti dan fungsinya
@@ -511,8 +695,6 @@ orders 1---N order_items
   - profil checkout berbasis email/user
 - `user_addresses`
   - alamat checkout
-- `user_payment_methods`
-  - metode pembayaran customer
 - `orders`
   - header transaksi
 - `order_items`
@@ -530,15 +712,15 @@ orders 1---N order_items
 - banyak sinkronisasi data dijalankan melalui hook model `saving`, `saved`, dan `deleted`
 - tidak ada `soft delete`
 - sebagian besar tabel bisnis memakai `timestamps`
-- tersedia seeder demo lengkap
+- tersedia seeder data awal lengkap
 - tersedia script audit hasil copy SQLite ke MySQL
 
 ### Seeder
 
-- `DemoCatalogSeeder`
+- `CatalogSeeder`
   - kategori, produk, gambar, compatibility, specs, variations
-- `DemoStoreSeeder`
-  - admin demo, customer demo, address, payment method, cart, order
+- `StoreSeeder`
+  - akun admin, akun customer, address, cart, dan order awal
 
 ### Audit dan migrasi data lintas DB
 
@@ -610,7 +792,7 @@ Project ini tidak memiliki REST API publik terpisah dalam `routes/api.php`. Namu
 - `GET /settings`
   - render account settings
 - `POST /settings`
-  - update profil, password, alamat, atau metode pembayaran berdasarkan field `action`
+  - update profil, password, atau alamat berdasarkan field `action`
 
 ### Orders
 
@@ -619,20 +801,20 @@ Project ini tidak memiliki REST API publik terpisah dalam `routes/api.php`. Namu
 - `GET /orders/{order}`
   - render detail order jika session/auth berhak mengakses
 
-### Backoffice
+### Admin
 
-- `GET /backoffice`
+- `GET /admin`
   - render dashboard admin
-- `GET /backoffice/{entity}`
+- `GET /admin/{entity}`
   - render entity list admin
   - dapat mengembalikan HTML partial jika AJAX
-- `GET /backoffice/{entity}/{mode}`
+- `GET /admin/{entity}/{mode}`
   - render modal create
-- `POST /backoffice/{entity}/{mode}`
+- `POST /admin/{entity}/{mode}`
   - simpan create entity
-- `GET /backoffice/{entity}/{pk}/{mode}`
+- `GET /admin/{entity}/{pk}/{mode}`
   - render modal detail/edit/delete
-- `POST /backoffice/{entity}/{pk}/{mode}`
+- `POST /admin/{entity}/{pk}/{mode}`
   - update atau delete entity
 
 ### Health endpoint
@@ -707,7 +889,7 @@ Area yang sudah diuji:
 - katalog dan halaman publik
 - auth page
 - account settings
-- redirect staff ke backoffice
+- redirect staff ke admin
 - CRUD kategori admin
 - update produk admin
 - inventory deduction saat checkout
@@ -720,3 +902,4 @@ Area yang sudah diuji:
 - UI aktif lebih banyak memakai asset statis `public/theme/*`
 - Tailwind/Vite sudah tersedia, tetapi belum menjadi jalur frontend utama
 - payment mode `prepaid` belum benar-benar aktif penuh karena `client_token` checkout saat ini mengembalikan `null`
+

@@ -3,18 +3,18 @@
 @section('title', 'Dashboard Admin | Spare Soko')
 
 @section('content')
-  <section class="backoffice-hero">
+  <section class="admin-hero">
     <div>
       <span class="eyebrow">Welcome Back</span>
       <h1>{{ $page_title }}</h1>
       <p>Selamat datang, {{ auth()->user()->username }}. Halaman ini merangkum kondisi katalog dan order dalam satu workspace yang lebih rapi.</p>
     </div>
-    <div class="backoffice-hero-icon">
+    <div class="admin-hero-icon">
       <i class="fa fa-line-chart"></i>
     </div>
   </section>
 
-  <section class="backoffice-grid">
+  <section class="admin-grid">
     @foreach ($cards as $card)
       <article class="kpi-card kpi-card-{{ $card['accent'] }}">
         <div class="kpi-copy">
@@ -29,9 +29,9 @@
     @endforeach
   </section>
 
-  <section class="backoffice-dashboard-grid">
-    <div class="backoffice-dashboard-main">
-      <div class="backoffice-panel">
+  <section class="admin-dashboard-grid">
+    <div class="admin-dashboard-main">
+      <div class="admin-panel">
         <div class="panel-heading-inline">
           <div>
             <span class="eyebrow">Catatan Uang Masuk</span>
@@ -39,7 +39,7 @@
           </div>
         </div>
         <div class="table-responsive">
-          <table class="table backoffice-table">
+          <table class="table admin-table">
             <thead>
               <tr>
                 <th>Order</th>
@@ -68,7 +68,7 @@
         </div>
       </div>
 
-      <div class="backoffice-panel">
+      <div class="admin-panel">
         <div class="panel-heading-inline">
           <div>
             <span class="eyebrow">Recent Activity</span>
@@ -76,7 +76,7 @@
           </div>
         </div>
         <div class="table-responsive">
-          <table class="table backoffice-table">
+          <table class="table admin-table">
             <thead>
               <tr>
                 <th>Jenis Data</th>
@@ -104,7 +104,7 @@
       </div>
     </div>
 
-    <div class="backoffice-panel quick-actions-panel">
+    <div class="admin-panel quick-actions-panel">
       <span class="eyebrow">Quick Actions</span>
       <h2>Aksi cepat</h2>
       <p class="panel-helper">Akses tindakan yang paling sering dipakai tanpa berpindah jauh dari dashboard.</p>
