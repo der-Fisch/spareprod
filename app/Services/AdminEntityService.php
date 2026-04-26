@@ -50,11 +50,16 @@ class AdminEntityService
         $categoryId = filled($data['category_id'] ?? null)
             ? (int) $data['category_id']
             : null;
+        $sku = $data['sku'] ?? null;
+
+        if (! filled($sku)) {
+            $sku = 'PRD-' . strtoupper(Str::random(8));
+        }
 
         $product->fill([
             'judul' => $data['judul'],
             'deskripsi' => $data['deskripsi'] ?? null,
-            'sku' => $data['sku'] ?? null,
+            'sku' => $sku,
             'oem_number' => $data['oem_number'] ?? null,
             'brand_name' => $data['brand_name'] ?? null,
             'brand_type' => $data['brand_type'] ?? null,

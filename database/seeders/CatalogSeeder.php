@@ -248,8 +248,10 @@ class CatalogSeeder extends Seeder
                 ['kode_produk' => $payload['sku']],
                 [
                     'nama_produk' => $payload['title'],
+                    'title' => $payload['title'],
                     'description' => $payload['description'],
                     'harga' => $payload['price'],
+                    'price' => $payload['price'],
                     'sku' => $payload['sku'],
                     'oem_number' => $payload['oem_number'],
                     'brand_id' => $brand->id,
@@ -323,4 +325,3 @@ class CatalogSeeder extends Seeder
         }
     }
 }
-
