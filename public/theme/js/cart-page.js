@@ -79,7 +79,7 @@
           showCartEmptyState();
         }
 
-        window.AppUi.showFlashMessage(response.flash_message || "Keranjang berhasil diperbarui.");
+        window.AppUi.showFlashMessage(response.flash_message || "Cart berhasil diperbarui.");
         window.AppUi.updateCartItemCount();
       },
       error: function () {
@@ -106,7 +106,7 @@
           showCartEmptyState();
         }
 
-        window.AppUi.showFlashMessage(response.flash_message || "Produk berhasil dihapus dari keranjang.");
+        window.AppUi.showFlashMessage(response.flash_message || "Product berhasil dihapus dari cart.");
         window.AppUi.updateCartItemCount();
       },
       error: function () {
@@ -181,7 +181,7 @@
           showCartEmptyState();
         }
 
-        window.AppUi.showFlashMessage(response.flash_message || "Produk terpilih berhasil dihapus dari keranjang.");
+        window.AppUi.showFlashMessage(response.flash_message || "Product terpilih berhasil dihapus dari cart.");
         window.AppUi.updateCartItemCount();
       }
     });

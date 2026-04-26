@@ -1,7 +1,7 @@
 @php($cardUrl = $productUrl ?? route('products.show', $product))
 <article class="product-card">
   <a href="{{ $cardUrl }}" class="product-card-media">
-    <img class="img-responsive" src="{{ $product->image_url }}" alt="{{ $product->title }}">
+    <img class="img-responsive" src="{{ $product->image_url }}" alt="{{ $product->judul }}">
   </a>
   <div class="product-card-body">
     <div class="product-card-topline">
@@ -12,10 +12,10 @@
     </div>
 
     <h3>
-      <a href="{{ $cardUrl }}">{{ $product->title }}</a>
+      <a href="{{ $cardUrl }}">{{ $product->judul }}</a>
     </h3>
 
-    <p class="product-description">{{ $product->description }}</p>
+    <p class="product-description">{{ $product->deskripsi }}</p>
 
     <div class="product-card-footer">
       <div class="product-price">
@@ -25,3 +25,4 @@
     </div>
   </div>
 </article>
+

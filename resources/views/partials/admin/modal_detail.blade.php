@@ -50,7 +50,7 @@
                 <div class="detail-image-list">
                   @forelse ($value ?? [] as $image)
                     <div class="detail-image-item">
-                      <img src="{{ $image->image_url }}" alt="{{ $image->alt_text ?: $object->title }}">
+                      <img src="{{ $image->image_url }}" alt="{{ $image->alt_text ?: $object->judul }}">
                       <small>{{ $image->image_path }}</small>
                     </div>
                   @empty

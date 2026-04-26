@@ -31,9 +31,9 @@
           </div>
 
           <div class="form-group form-group-span-2">
-            <label for="admin_whatsapp_number">Nomor WhatsApp</label>
-            <input id="admin_whatsapp_number" type="text" name="whatsapp_number" class="form-control" value="{{ old('whatsapp_number', $profile->whatsapp_number) }}" placeholder="Contoh: 08123456789">
-            @foreach ($errors->getBag('profile')->get('whatsapp_number') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+            <label for="admin_nomor_whatsapp">Nomor WhatsApp</label>
+            <input id="admin_nomor_whatsapp" type="text" name="nomor_whatsapp" class="form-control" value="{{ old('nomor_whatsapp', $profile->nomor_whatsapp) }}" placeholder="Contoh: 08123456789">
+            @foreach ($errors->getBag('profile')->get('nomor_whatsapp') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
           </div>
 
           <div class="account-form-actions">
@@ -79,3 +79,4 @@
     </div>
   </section>
 @endsection
+

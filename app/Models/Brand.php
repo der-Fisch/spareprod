@@ -31,3 +31,4 @@ class Brand extends Model
         return $this->nama_brand;
     }
 }
+

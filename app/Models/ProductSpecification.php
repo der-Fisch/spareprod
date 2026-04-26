@@ -29,3 +29,4 @@ class ProductSpecification extends Model
         return $this->belongsTo(Product::class);
     }
 }
+

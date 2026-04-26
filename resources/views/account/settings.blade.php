@@ -3,7 +3,7 @@
 @section('title', 'Account Settings | Spare Soko')
 
 @php
-  $genderOptions = [
+  $opsiJenisKelamin = [
     'male' => 'Laki-laki',
     'female' => 'Perempuan',
     'other' => 'Lainnya',
@@ -41,7 +41,7 @@
           </div>
           <div class="account-hub-metric">
             <span>HP Utama</span>
-            <strong>{{ $profile->phone_number ?: 'Belum diisi' }}</strong>
+            <strong>{{ $profile->nomor_whatsapp ?: 'Belum diisi' }}</strong>
           </div>
         </div>
       </div>
@@ -71,15 +71,15 @@
                   <input type="hidden" name="active_tab" value="biodata">
 
                   <div class="form-group">
-                    <label for="first_name">Nama Depan</label>
-                    <input id="first_name" type="text" name="first_name" class="form-control" value="{{ old('first_name', auth()->user()->first_name) }}">
-                    @foreach ($errors->getBag('profile')->get('first_name') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+                    <label for="nama_depan">Nama Depan</label>
+                    <input id="nama_depan" type="text" name="nama_depan" class="form-control" value="{{ old('nama_depan', auth()->user()->nama_depan) }}">
+                    @foreach ($errors->getBag('profile')->get('nama_depan') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
                   </div>
 
                   <div class="form-group">
-                    <label for="last_name">Nama Belakang</label>
-                    <input id="last_name" type="text" name="last_name" class="form-control" value="{{ old('last_name', auth()->user()->last_name) }}">
-                    @foreach ($errors->getBag('profile')->get('last_name') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+                    <label for="nama_belakang">Nama Belakang</label>
+                    <input id="nama_belakang" type="text" name="nama_belakang" class="form-control" value="{{ old('nama_belakang', auth()->user()->nama_belakang) }}">
+                    @foreach ($errors->getBag('profile')->get('nama_belakang') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
                   </div>
 
                   <div class="form-group">
@@ -95,32 +95,26 @@
                   </div>
 
                   <div class="form-group">
-                    <label for="phone_number">Nomor HP</label>
-                    <input id="phone_number" type="text" name="phone_number" class="form-control" value="{{ old('phone_number', $profile->phone_number) }}" placeholder="Contoh: 08123456789">
-                    @foreach ($errors->getBag('profile')->get('phone_number') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+                    <label for="nomor_whatsapp">Nomor WhatsApp</label>
+                    <input id="nomor_whatsapp" type="text" name="nomor_whatsapp" class="form-control" value="{{ old('nomor_whatsapp', $profile->nomor_whatsapp) }}" placeholder="Contoh: 08123456789">
+                    @foreach ($errors->getBag('profile')->get('nomor_whatsapp') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
                   </div>
 
                   <div class="form-group">
-                    <label for="whatsapp_number">Nomor WhatsApp</label>
-                    <input id="whatsapp_number" type="text" name="whatsapp_number" class="form-control" value="{{ old('whatsapp_number', $profile->whatsapp_number) }}" placeholder="Contoh: 08123456789">
-                    @foreach ($errors->getBag('profile')->get('whatsapp_number') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+                    <label for="tanggal_lahir">Tanggal Lahir</label>
+                    <input id="tanggal_lahir" type="date" name="tanggal_lahir" class="form-control" value="{{ old('tanggal_lahir', optional($profile->tanggal_lahir)->format('Y-m-d')) }}">
+                    @foreach ($errors->getBag('profile')->get('tanggal_lahir') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
                   </div>
 
                   <div class="form-group">
-                    <label for="birth_date">Tanggal Lahir</label>
-                    <input id="birth_date" type="date" name="birth_date" class="form-control" value="{{ old('birth_date', optional($profile->birth_date)->format('Y-m-d')) }}">
-                    @foreach ($errors->getBag('profile')->get('birth_date') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
-                  </div>
-
-                  <div class="form-group">
-                    <label for="gender">Jenis Kelamin</label>
-                    <select id="gender" name="gender" class="form-control">
+                    <label for="jenis_kelamin">Jenis Kelamin</label>
+                    <select id="jenis_kelamin" name="jenis_kelamin" class="form-control">
                       <option value="">Pilih jenis kelamin</option>
-                      @foreach ($genderOptions as $value => $label)
-                        <option value="{{ $value }}" @selected(old('gender', $profile->gender) === $value)>{{ $label }}</option>
+                      @foreach ($opsiJenisKelamin as $value => $label)
+                        <option value="{{ $value }}" @selected(old('jenis_kelamin', $profile->jenis_kelamin) === $value)>{{ $label }}</option>
                       @endforeach
                     </select>
-                    @foreach ($errors->getBag('profile')->get('gender') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+                    @foreach ($errors->getBag('profile')->get('jenis_kelamin') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
                   </div>
 
                   <div class="account-form-actions">
@@ -140,19 +134,15 @@
                     </div>
                     <div class="account-summary-item">
                       <span>Nomor HP</span>
-                      <strong>{{ $profile->phone_number ?: 'Belum diisi' }}</strong>
-                    </div>
-                    <div class="account-summary-item">
-                      <span>WhatsApp</span>
-                      <strong>{{ $profile->whatsapp_number ?: 'Belum diisi' }}</strong>
+                      <strong>{{ $profile->nomor_whatsapp ?: 'Belum diisi' }}</strong>
                     </div>
                     <div class="account-summary-item">
                       <span>Tanggal Lahir</span>
-                      <strong>{{ optional($profile->birth_date)->format('d M Y') ?: 'Belum diisi' }}</strong>
+                      <strong>{{ optional($profile->tanggal_lahir)->format('d M Y') ?: 'Belum diisi' }}</strong>
                     </div>
                     <div class="account-summary-item">
                       <span>Jenis Kelamin</span>
-                      <strong>{{ $genderOptions[$profile->gender] ?? 'Belum diisi' }}</strong>
+                      <strong>{{ $opsiJenisKelamin[$profile->jenis_kelamin] ?? 'Belum diisi' }}</strong>
                     </div>
                   </div>
                 </div>
@@ -191,18 +181,18 @@
                       <div class="account-data-card-head">
                         <div>
                           <h4>{{ $address->display_label }}</h4>
-                          <p>{{ $address->recipient_name ?: auth()->user()->name }}</p>
+                          <p>{{ $address->nama_penerima ?: auth()->user()->name }}</p>
                         </div>
                         <div class="account-badges">
                           @if ($address->is_default)
                             <span class="account-badge account-badge-success">Utama</span>
                           @endif
-                          <span class="account-badge">{{ strtoupper($address->type) }}</span>
+                          <span class="account-badge">{{ strtoupper($address->tipe) }}</span>
                         </div>
                       </div>
 
                       <div class="account-data-card-body">
-                        <p><strong>No. HP</strong><br>{{ $address->phone_number ?: 'Belum diisi' }}</p>
+                        <p><strong>Nomor WhatsApp</strong><br>{{ $address->nomor_whatsapp ?: 'Belum diisi' }}</p>
                         <p><strong>Alamat</strong><br>{{ $address->address }}</p>
                       </div>
 
@@ -311,3 +301,4 @@
     ])
   @endforeach
 @endsection
+

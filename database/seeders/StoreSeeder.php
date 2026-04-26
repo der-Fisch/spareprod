@@ -108,3 +108,4 @@ class StoreSeeder extends Seeder
         );
     }
 }
+

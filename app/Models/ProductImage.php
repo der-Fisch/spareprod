@@ -57,3 +57,4 @@ class ProductImage extends Model
         return asset('theme/img/marketing1.jpg');
     }
 }
+

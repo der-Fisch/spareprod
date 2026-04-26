@@ -8,7 +8,7 @@ class HomeController extends Controller
 {
     public function __invoke()
     {
-        $products = Product::query()
+        $featuredProducts = Product::query()
             ->active()
             ->with(['defaultCategory', 'compatibilities', 'specifications', 'images'])
             ->inRandomOrder()
@@ -23,7 +23,7 @@ class HomeController extends Controller
 
         return view('home', [
             'featuredProduct' => $featuredProduct,
-            'products' => $products,
+            'products' => $featuredProducts,
         ]);
     }
 }

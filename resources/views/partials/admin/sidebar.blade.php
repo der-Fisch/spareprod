@@ -20,7 +20,7 @@
     </a>
     <a href="{{ route('admin.entity.list', ['entity' => 'products']) }}" class="admin-nav-link{{ request()->is('admin/products*') ? ' is-active' : '' }}">
       <i class="fa fa-cubes"></i>
-      <span>Produk</span>
+      <span>Products</span>
     </a>
     <a href="{{ route('admin.entity.list', ['entity' => 'orders']) }}" class="admin-nav-link{{ request()->is('admin/orders*') ? ' is-active' : '' }}">
       <i class="fa fa-shopping-cart"></i>
@@ -28,3 +28,4 @@
     </a>
   </nav>
 </aside>
+

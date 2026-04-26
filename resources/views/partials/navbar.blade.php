@@ -53,7 +53,7 @@
 
     <div class="site-navbar-section site-navbar-right">
       @auth
-        <a class="nav-cart-pill" href="{{ route('cart') }}">
+        <a class="nav-cart-pill" href="{{ route('cart.index') }}">
           <i class="fa fa-shopping-cart"></i>
           <span class="nav-cart-count" id="cart-count-badge" data-cart-count>{{ session('cart_item_count', $sharedCartCount) }}</span>
         </a>
@@ -91,3 +91,4 @@
     </div>
   </div>
 </header>
+

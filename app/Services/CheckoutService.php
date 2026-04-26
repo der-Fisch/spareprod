@@ -14,21 +14,21 @@ use Illuminate\Support\Str;
 
 class CheckoutService
 {
-    public function resolveUserCheckout(Request $request, bool $persistAuthenticated = true): ?UserCheckout
+    public function resolveCheckoutUser(Request $request, bool $storeAuthenticatedUser = true): ?UserCheckout
     {
         if ($request->user()) {
-            $userCheckout = UserCheckout::query()->firstOrCreate(
+            $checkoutUser = UserCheckout::query()->firstOrCreate(
                 ['email' => $request->user()->email],
                 ['user_id' => $request->user()->id]
             );
 
-            if ($persistAuthenticated) {
-                $userCheckout->user_id = $request->user()->id;
-                $userCheckout->save();
-                $request->session()->put('user_checkout_id', $userCheckout->id);
+            if ($storeAuthenticatedUser) {
+                $checkoutUser->user_id = $request->user()->id;
+                $checkoutUser->save();
+                $request->session()->put('user_checkout_id', $checkoutUser->id);
             }
 
-            return $userCheckout;
+            return $checkoutUser;
         }
 
         $checkoutId = $request->session()->get('user_checkout_id');
@@ -36,12 +36,12 @@ class CheckoutService
         return $checkoutId ? UserCheckout::query()->find($checkoutId) : null;
     }
 
-    public function resolveOrder(Request $request, Cart $cart, bool $create = true): ?Order
+    public function resolveOrder(Request $request, Cart $cart, bool $createIfMissing = true): ?Order
     {
-        $orderId = $request->session()->get('order_id');
-        $order = $orderId ? Order::query()->find($orderId) : null;
+        $idOrder = $request->session()->get('order_id');
+        $order = $idOrder ? Order::query()->find($idOrder) : null;
 
-        if ($order && $order->cart_id === $cart->id && ! $this->isFinalizedStatus($order->status)) {
+        if ($order && $order->cart_id === $cart->id && ! $this->hasFinalStatus($order->status)) {
             return $order;
         }
 
@@ -51,7 +51,7 @@ class CheckoutService
             ->latest('id')
             ->first();
 
-        if (! $order && $create) {
+        if (! $order && $createIfMissing) {
             $order = Order::query()->create([
                 'cart_id' => $cart->id,
                 'status' => 'draft',
@@ -69,7 +69,7 @@ class CheckoutService
     public function syncOrderSnapshot(Order $order, Cart $cart, Collection $selectedItems): void
     {
         $order->items_subtotal = round((float) $selectedItems->sum('line_item_total'), 2);
-        $order->items_tax_total = round((float) $order->items_subtotal * (float) $cart->tax_percentage, 2);
+        $order->items_tax_total = round((float) $order->items_subtotal * (float) $cart->persentasi_pajak, 2);
         $order->items_total = round((float) $order->items_subtotal + (float) $order->items_tax_total, 2);
         $order->save();
 
@@ -82,7 +82,7 @@ class CheckoutService
 
             return [
                 'variation_id' => $variation?->id,
-                'product_title' => $product?->title ?: 'Produk',
+                'product_title' => $product?->judul ?: 'Product',
                 'variation_title' => null,
                 'product_image_url' => $product?->image_url,
                 'quantity' => (int) $cartItem->quantity,
@@ -107,7 +107,7 @@ class CheckoutService
                 ->get();
 
             if ($lockedItems->isEmpty()) {
-                throw new \RuntimeException('Pilih minimal satu produk di keranjang untuk lanjut checkout.');
+                throw new \RuntimeException('Pilih minimal satu product di cart untuk lanjut checkout.');
             }
 
             $this->syncOrderSnapshot($order, $cart, $lockedItems);
@@ -122,17 +122,17 @@ class CheckoutService
                     continue;
                 }
 
-                $remainingInventory = (int) ($product->stok ?? 0) - (int) $cartItem->quantity;
+                $remainingStock = (int) ($product->stok ?? 0) - (int) $cartItem->quantity;
 
-                if ($remainingInventory < 0) {
+                if ($remainingStock < 0) {
                     if ((int) ($product->stok ?? 0) <= 0) {
-                        throw new \RuntimeException('Stok untuk produk "' . $product->title . '" sedang habis. Silakan tunggu admin/staff melakukan restock.');
+                        throw new \RuntimeException('Stok untuk product "' . $product->judul . '" sedang habis. Silakan tunggu admin/staff melakukan restock.');
                     }
 
-                    throw new \RuntimeException('Jumlah untuk produk "' . $product->title . '" melebihi stok tersedia. Saat ini hanya tersedia ' . (int) ($product->stok ?? 0) . ' unit. Silakan kurangi jumlah atau tunggu admin/staff melakukan restock.');
+                    throw new \RuntimeException('Jumlah untuk product "' . $product->judul . '" melebihi stok tersedia. Saat ini hanya tersedia ' . (int) ($product->stok ?? 0) . ' unit. Silakan kurangi jumlah atau tunggu admin/staff melakukan restock.');
                 }
 
-                $product->stok = $remainingInventory;
+                $product->stok = $remainingStock;
                 $product->save();
             }
 
@@ -148,7 +148,7 @@ class CheckoutService
         });
     }
 
-    protected function isFinalizedStatus(?string $status): bool
+    protected function hasFinalStatus(?string $status): bool
     {
         return in_array($status, ['paid', 'shipped', 'refunded'], true);
     }

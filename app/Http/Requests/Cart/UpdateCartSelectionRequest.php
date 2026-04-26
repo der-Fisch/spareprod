@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Requests\Cart;
 
@@ -20,3 +20,4 @@ class UpdateCartSelectionRequest extends FormRequest
         ];
     }
 }
+

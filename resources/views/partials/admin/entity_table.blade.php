@@ -22,7 +22,7 @@
               @elseif (($column['type'] ?? null) === 'currency_catalog')
                 {{ rupiah_catalog($value) }}
               @elseif (($column['type'] ?? null) === 'image')
-                <img src="{{ $value ?: asset('theme/img/marketing1.jpg') }}" alt="{{ $row->title ?? 'Product image' }}" class="admin-table-thumbnail">
+                <img src="{{ $value ?: asset('theme/img/marketing1.jpg') }}" alt="{{ $row->judul ?? 'Gambar produk' }}" class="admin-table-thumbnail">
               @elseif (($column['type'] ?? null) === 'boolean')
                 <span class="table-chip{{ $value ? ' table-chip-success' : ' table-chip-muted' }}">{{ $value ? 'Active' : 'Inactive' }}</span>
               @elseif (($column['type'] ?? null) === 'badge')
@@ -66,3 +66,4 @@
     @endif
   </nav>
 @endif
+

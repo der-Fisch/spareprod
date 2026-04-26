@@ -52,3 +52,4 @@ class ProductCompatibility extends Model
         return $this->vehicle_name;
     }
 }
+

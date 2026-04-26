@@ -4,7 +4,7 @@
 
 @section('content')
   <section class="page-hero page-hero-compact">
-    <span class="eyebrow">Keranjang</span>
+    <span class="eyebrow">Cart</span>
     <h1>Kelola item yang ingin dibeli sebelum lanjut checkout.</h1>
     <p>Pilih semua, pilih per produk, ubah jumlah, dan lanjutkan checkout hanya dengan item yang benar-benar Anda centang.</p>
   </section>
@@ -15,7 +15,7 @@
       @include('carts.empty_cart')
     @else
       @php
-        $groupedItems = $object->cartItems->groupBy(fn ($item) => $item->item->product->brand_name ?: 'Produk Lainnya');
+        $groupedItems = $object->cartItems->groupBy(fn ($item) => $item->item->product->brand_name ?: 'Product Lainnya');
       @endphp
 
       <div class="cart-main" id="cart-main-content">
@@ -25,7 +25,7 @@
             <span>Pilih Semua ({{ $object->cartItems->count() }})</span>
           </label>
 
-          <form id="remove-selected-form" method="POST" action="{{ route('cart.remove_selected') }}">
+          <form id="remove-selected-form" method="POST" action="{{ route('cart.items.remove_selected') }}">
             @csrf
             <button type="submit" class="btn btn-link{{ $object->selected_item_count < 1 ? ' disabled' : '' }}" @disabled($object->selected_item_count < 1)>Hapus</button>
           </form>
@@ -57,11 +57,11 @@
                 </div>
 
                 <div class="cart-item-media">
-                  <img src="{{ $item->product_image_url }}" alt="{{ $item->item->product->title }}">
+                  <img src="{{ $item->product_image_url }}" alt="{{ $item->item->product->judul }}">
                 </div>
 
                 <div class="cart-item-copy">
-                  <h3>{{ $item->item->product->title }}</h3>
+                  <h3>{{ $item->item->product->judul }}</h3>
                   <div class="cart-item-meta">
                     <span class="account-badge">{{ $item->item->product->brand_name ?: 'Spare Part' }}</span>
                     <span class="cart-unit-price">{{ rupiah_catalog($item->quantity > 0 ? ($item->line_item_total / $item->quantity) : 0) }} / item</span>
@@ -111,7 +111,7 @@
           </div>
           <div class="cart-summary-row">
             <span>Pajak</span>
-            <strong id="cart-selected-tax">{{ rupiah_catalog($object->selected_tax_total) }}</strong>
+            <strong id="cart-selected-tax">{{ rupiah_catalog($object->total_pajak_terpilih) }}</strong>
           </div>
           <div class="cart-summary-row cart-summary-row-total">
             <span>Total</span>
@@ -125,9 +125,10 @@
           </form>
 
           <p class="cart-summary-helper">Hanya item yang dicentang yang akan lanjut ke flow checkout.</p>
-          <p class="cart-summary-helper">Estimasi pajak dihitung otomatis dari subtotal item terpilih dengan tarif pajak keranjang saat ini sebesar {{ number_format((float) $object->tax_percentage * 100, 1, ',', '.') }}%.</p>
+          <p class="cart-summary-helper">Estimasi pajak dihitung otomatis dari subtotal item terpilih dengan tarif pajak keranjang saat ini sebesar {{ number_format((float) $object->persentasi_pajak * 100, 1, ',', '.') }}%.</p>
         </div>
       </aside>
     @endif
   </div>
 @endsection
+

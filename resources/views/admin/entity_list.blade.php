@@ -20,3 +20,4 @@
     @include('partials.admin.entity_table_shell')
   </section>
 @endsection
+

@@ -18,6 +18,8 @@ class Cart extends Model
         'tax_percentage',
         'tax_total',
         'total',
+        'persentasi_pajak',
+        'total_pajak',
     ];
 
     protected function casts(): array
@@ -100,4 +102,30 @@ class Cart extends Model
 
         return $totalItems > 0 && $this->selected_item_count === $totalItems;
     }
+
+    public function getPersentasiPajakAttribute(): float
+    {
+        return (float) ($this->attributes['tax_percentage'] ?? 0);
+    }
+
+    public function setPersentasiPajakAttribute(float|int|string|null $value): void
+    {
+        $this->attributes['tax_percentage'] = $value;
+    }
+
+    public function getTotalPajakAttribute(): float
+    {
+        return (float) ($this->attributes['tax_total'] ?? 0);
+    }
+
+    public function setTotalPajakAttribute(float|int|string|null $value): void
+    {
+        $this->attributes['tax_total'] = $value;
+    }
+
+    public function getTotalPajakTerpilihAttribute(): float
+    {
+        return $this->selected_tax_total;
+    }
 }
+

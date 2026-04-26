@@ -38,3 +38,4 @@ class GuestCheckoutRequest extends FormRequest
         ];
     }
 }
+

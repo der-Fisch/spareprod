@@ -26,6 +26,8 @@ class Product extends Model
         'title',
         'description',
         'price',
+        'judul',
+        'deskripsi',
         'sku',
         'oem_number',
         'brand_name',
@@ -182,7 +184,7 @@ class Product extends Model
             return asset($this->gambar);
         }
 
-        $relativePath = 'theme/img/products/' . Str::slug($this->title) . '.jpg';
+        $relativePath = 'theme/img/produk/' . Str::slug($this->title) . '.jpg';
 
         if (file_exists(public_path($relativePath))) {
             return asset($relativePath);
@@ -289,7 +291,28 @@ class Product extends Model
 
     public function __toString(): string
     {
-        return $this->nama_produk ?: $this->title;
+        return $this->judul ?: $this->nama_produk;
+    }
+
+    public function getJudulAttribute(): ?string
+    {
+        return $this->attributes['title'] ?? $this->attributes['nama_produk'] ?? null;
+    }
+
+    public function setJudulAttribute(?string $value): void
+    {
+        $this->attributes['title'] = $value;
+        $this->attributes['nama_produk'] = $value;
+    }
+
+    public function getDeskripsiAttribute(): ?string
+    {
+        return $this->attributes['description'] ?? null;
+    }
+
+    public function setDeskripsiAttribute(?string $value): void
+    {
+        $this->attributes['description'] = $value;
     }
 
     public function refreshErpSummaryColumns(): void
@@ -332,3 +355,4 @@ class Product extends Model
         return $variation;
     }
 }
+

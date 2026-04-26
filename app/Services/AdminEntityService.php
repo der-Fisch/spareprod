@@ -15,36 +15,36 @@ use Illuminate\Support\Str;
 
 class AdminEntityService
 {
-    public function persist(string $entity, array $data, mixed $object): void
+    public function simpan(string $entitas, array $data, mixed $objek): void
     {
-        DB::transaction(function () use ($entity, $data, $object) {
-            match ($entity) {
-                'categories' => $this->persistCategory($data, $object),
-                'products' => $this->persistProduct($data, $object),
-                'orders' => $this->persistOrder($data, $object),
+        DB::transaction(function () use ($entitas, $data, $objek) {
+            match ($entitas) {
+                'categories' => $this->simpanKategori($data, $objek),
+                'products' => $this->saveProduct($data, $objek),
+                'orders' => $this->simpanOrder($data, $objek),
                 default => null,
             };
         });
     }
 
-    protected function persistCategory(array $data, ?Category $category): void
+    protected function simpanKategori(array $data, ?Category $kategori): void
     {
-        $category ??= new Category();
-        $slug = $this->generateUniqueCategorySlug(
-            (string) $data['title'],
-            $category->exists ? (int) $category->id : null,
+        $kategori ??= new Category();
+        $slug = $this->buatSlugKategoriUnik(
+            (string) $data['judul'],
+            $kategori->exists ? (int) $kategori->id : null,
         );
 
-        $category->fill([
-            'title' => $data['title'],
+        $kategori->fill([
+            'title' => $data['judul'],
             'slug' => $slug,
-            'description' => $data['description'] ?? null,
+            'description' => $data['deskripsi'] ?? null,
             'active' => (bool) ($data['active'] ?? false),
         ]);
-        $category->save();
+        $kategori->save();
     }
 
-    protected function persistProduct(array $data, ?Product $product): void
+    protected function saveProduct(array $data, ?Product $product): void
     {
         $product ??= new Product();
         $categoryId = filled($data['category_id'] ?? null)
@@ -52,14 +52,14 @@ class AdminEntityService
             : null;
 
         $product->fill([
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
+            'judul' => $data['judul'],
+            'deskripsi' => $data['deskripsi'] ?? null,
             'sku' => $data['sku'] ?? null,
             'oem_number' => $data['oem_number'] ?? null,
             'brand_name' => $data['brand_name'] ?? null,
             'brand_type' => $data['brand_type'] ?? null,
             'warranty_label' => $data['warranty_label'] ?? null,
-            'price' => $data['price'],
+            'harga' => $data['harga'],
             'stok' => $data['stok'],
             'default_category_id' => $categoryId,
             'active' => (bool) ($data['active'] ?? false),
@@ -73,7 +73,7 @@ class AdminEntityService
         $product->syncPrimaryVariation();
     }
 
-    protected function persistOrder(array $data, Order $order): void
+    protected function simpanOrder(array $data, Order $order): void
     {
         $order->fill([
             'status' => $data['status'],
@@ -84,32 +84,32 @@ class AdminEntityService
     protected function syncProductCompatibilities(Product $product, array $entries): void
     {
         $entries = collect($entries)
-            ->map(function ($entry) {
-                if (! is_array($entry)) {
+            ->map(function ($baris) {
+                if (! is_array($baris)) {
                     return null;
                 }
 
                 return [
-                    'vehicle_name' => trim((string) ($entry['vehicle_name'] ?? '')),
-                    'year_start' => filled($entry['year_start'] ?? null) ? (int) $entry['year_start'] : null,
-                    'year_end' => filled($entry['year_end'] ?? null) ? (int) $entry['year_end'] : null,
+                    'vehicle_name' => trim((string) ($baris['vehicle_name'] ?? '')),
+                    'year_start' => filled($baris['year_start'] ?? null) ? (int) $baris['year_start'] : null,
+                    'year_end' => filled($baris['year_end'] ?? null) ? (int) $baris['year_end'] : null,
                 ];
             })
             ->filter();
 
         ProductCompatibility::query()->where('product_id', $product->id)->delete();
 
-        foreach ($entries as $index => $entry) {
-            if (! filled($entry['vehicle_name'])) {
+        foreach ($entries as $order => $row) {
+            if (! filled($row['vehicle_name'])) {
                 continue;
             }
 
             ProductCompatibility::query()->create([
                 'product_id' => $product->id,
-                'vehicle_name' => $entry['vehicle_name'],
-                'year_start' => $entry['year_start'],
-                'year_end' => $entry['year_end'],
-                'sort_order' => $index + 1,
+                'vehicle_name' => $row['vehicle_name'],
+                'year_start' => $row['year_start'],
+                'year_end' => $row['year_end'],
+                'sort_order' => $order + 1,
             ]);
         }
     }
@@ -117,30 +117,30 @@ class AdminEntityService
     protected function syncProductSpecifications(Product $product, array $entries): void
     {
         $entries = collect($entries)
-            ->map(function ($entry) {
-                if (! is_array($entry)) {
+            ->map(function ($baris) {
+                if (! is_array($baris)) {
                     return null;
                 }
 
                 return [
-                    'label' => trim((string) ($entry['label'] ?? '')),
-                    'value' => trim((string) ($entry['value'] ?? '')),
+                    'label' => trim((string) ($baris['label'] ?? '')),
+                    'value' => trim((string) ($baris['value'] ?? '')),
                 ];
             })
             ->filter();
 
         ProductSpecification::query()->where('product_id', $product->id)->delete();
 
-        foreach ($entries as $index => $entry) {
-            if (! filled($entry['label']) || ! filled($entry['value'])) {
+        foreach ($entries as $order => $row) {
+            if (! filled($row['label']) || ! filled($row['value'])) {
                 continue;
             }
 
             ProductSpecification::query()->create([
                 'product_id' => $product->id,
-                'label' => $entry['label'],
-                'value' => $entry['value'],
-                'sort_order' => $index + 1,
+                'label' => $row['label'],
+                'value' => $row['value'],
+                'sort_order' => $order + 1,
             ]);
         }
     }
@@ -148,26 +148,26 @@ class AdminEntityService
     protected function syncProductImages(Product $product, array $entries): void
     {
         $entries = collect($entries)
-            ->map(function ($entry) {
-                if (! is_array($entry)) {
+            ->map(function ($baris) {
+                if (! is_array($baris)) {
                     return null;
                 }
 
                 return [
-                    'image_path' => trim((string) ($entry['image_path'] ?? '')),
-                    'alt_text' => trim((string) ($entry['alt_text'] ?? '')),
-                    'image_file' => $entry['image_file'] ?? null,
+                    'image_path' => trim((string) ($baris['image_path'] ?? '')),
+                    'alt_text' => trim((string) ($baris['alt_text'] ?? '')),
+                    'image_file' => $baris['image_file'] ?? null,
                 ];
             })
             ->filter();
 
         ProductImage::query()->where('product_id', $product->id)->delete();
 
-        foreach ($entries as $index => $entry) {
-            $imagePath = $entry['image_path'];
+        foreach ($entries as $order => $row) {
+            $imagePath = $row['image_path'];
 
-            if (($entry['image_file'] ?? null) instanceof UploadedFile) {
-                $imagePath = $this->storeProductImageUpload($entry['image_file']);
+            if (($row['image_file'] ?? null) instanceof UploadedFile) {
+                $imagePath = $this->storeProductImageUpload($row['image_file']);
             }
 
             if (! filled($imagePath)) {
@@ -177,38 +177,38 @@ class AdminEntityService
             ProductImage::query()->create([
                 'product_id' => $product->id,
                 'image_path' => $imagePath,
-                'alt_text' => $entry['alt_text'] ?: $product->title,
-                'sort_order' => $index + 1,
+                'alt_text' => $row['alt_text'] ?: $product->judul,
+                'sort_order' => $order + 1,
             ]);
         }
     }
 
     protected function storeProductImageUpload(UploadedFile $file): string
     {
-        $directory = public_path('uploads/products');
-        File::ensureDirectoryExists($directory);
+        $direktori = public_path('uploads/produk');
+        File::ensureDirectoryExists($direktori);
 
-        $extension = $file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg';
-        $filename = Str::uuid()->toString() . '.' . strtolower($extension);
-        $file->move($directory, $filename);
+        $ekstensi = $file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg';
+        $namaFile = Str::uuid()->toString() . '.' . strtolower($ekstensi);
+        $file->move($direktori, $namaFile);
 
-        return 'uploads/products/' . $filename;
+        return 'uploads/produk/' . $namaFile;
     }
 
-    protected function generateUniqueCategorySlug(string $title, ?int $ignoreId = null): string
+    protected function buatSlugKategoriUnik(string $judul, ?int $abaikanId = null): string
     {
-        $baseSlug = Str::slug($title) ?: 'kategori';
-        $slug = $baseSlug;
-        $suffix = 2;
+        $slugDasar = Str::slug($judul) ?: 'kategori';
+        $slug = $slugDasar;
+        $akhiran = 2;
 
         while (
             Category::query()
-                ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
+                ->when($abaikanId, fn ($query) => $query->whereKeyNot($abaikanId))
                 ->where('slug', $slug)
                 ->exists()
         ) {
-            $slug = $baseSlug . '-' . $suffix;
-            $suffix++;
+            $slug = $slugDasar . '-' . $akhiran;
+            $akhiran++;
         }
 
         return $slug;

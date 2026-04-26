@@ -10,31 +10,31 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::query()
+        $productQuery = Product::query()
             ->active()
             ->with(['defaultCategory', 'categories', 'compatibilities', 'specifications', 'images']);
 
-        if ($search = trim((string) $request->string('q'))) {
-            $products->where(function ($query) use ($search) {
+        if ($keyword = trim((string) $request->string('q'))) {
+            $productQuery->where(function ($query) use ($keyword) {
                 $query
-                    ->where('title', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%');
+                    ->where('title', 'like', '%' . $keyword . '%')
+                    ->orWhere('description', 'like', '%' . $keyword . '%');
             });
         }
 
-        if ($categoryId = $request->integer('category_id')) {
-            $products->whereHas('categories', fn ($query) => $query->whereKey($categoryId));
+        if ($idKategori = $request->integer('category_id')) {
+            $productQuery->whereHas('categories', fn ($query) => $query->whereKey($idKategori));
         }
 
-        if ($minPrice = $this->parseCatalogPrice($request->input('min_price'))) {
-            $products->where('price', '>=', $minPrice);
+        if ($minimumPrice = $this->parseCatalogPrice($request->input('min_price'))) {
+            $productQuery->where('price', '>=', $minimumPrice);
         }
 
-        if ($maxPrice = $this->parseCatalogPrice($request->input('max_price'))) {
-            $products->where('price', '<=', $maxPrice);
+        if ($maximumPrice = $this->parseCatalogPrice($request->input('max_price'))) {
+            $productQuery->where('price', '<=', $maximumPrice);
         }
 
-        $paginatedProducts = $products
+        $paginatedProducts = $productQuery
             ->latest('id')
             ->paginate(15)
             ->withQueryString();
@@ -78,12 +78,12 @@ class ProductController extends Controller
             return null;
         }
 
-        $digits = preg_replace('/\D+/', '', $rawValue);
+        $digitsOnly = preg_replace('/\D+/', '', $rawValue);
 
-        if (! $digits) {
+        if (! $digitsOnly) {
             return null;
         }
 
-        return ((float) $digits) / 10000;
+        return ((float) $digitsOnly) / 10000;
     }
 }

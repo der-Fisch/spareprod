@@ -6,7 +6,7 @@
       {{ $order->displayItemCount() }} barang: <br>
       @foreach ($order->presentedItems() as $item)
         @php
-          $productTitle = $item->product_title ?? $item->item?->product?->title ?? 'Produk';
+          $productTitle = $item->product_title ?? $item->item?->product?->judul ?? 'Product';
         @endphp
         <b>{{ $productTitle }}</b>
         x {{ $item->quantity }}Pcs : {{ rupiah_catalog($item->line_item_total) }}<br>
@@ -22,7 +22,7 @@
 @if ($order->shippingAddress)
   @php
     $addressText = trim((string) $order->shippingAddress->address);
-    $recipientName = trim((string) $order->shippingAddress->recipient_name);
+    $recipientName = trim((string) $order->shippingAddress->nama_penerima);
     $addressSuffix = $recipientName !== '' ? ' (Atas Nama ' . $recipientName . ')' : '';
   @endphp
   <p>

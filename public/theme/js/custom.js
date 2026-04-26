@@ -50,7 +50,7 @@
   }
 
   function showCartSuccessAlert(message) {
-    var text = message || "Produk berhasil ditambahkan ke keranjang.";
+    var text = message || "Product berhasil ditambahkan ke cart.";
     if (!window.Swal) {
       showFlashMessage(text);
       return;
@@ -61,7 +61,7 @@
       title: "Berhasil",
       text: text,
       showCancelButton: true,
-      confirmButtonText: "Lihat Keranjang",
+      confirmButtonText: "Lihat Cart",
       cancelButtonText: "Lanjut Belanja",
       reverseButtons: true
     }).then(function (result) {

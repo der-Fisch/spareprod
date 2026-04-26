@@ -16,3 +16,4 @@ class FinalizeCheckoutRequest extends FormRequest
         return [];
     }
 }
+

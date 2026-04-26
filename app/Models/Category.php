@@ -17,6 +17,8 @@ class Category extends Model
         'slug',
         'description',
         'active',
+        'judul',
+        'deskripsi',
     ];
 
     protected function casts(): array
@@ -51,6 +53,28 @@ class Category extends Model
 
     public function __toString(): string
     {
-        return $this->nama_kategori ?: $this->title;
+        return $this->judul ?: $this->nama_kategori;
+    }
+
+    public function getJudulAttribute(): ?string
+    {
+        return $this->attributes['title'] ?? $this->attributes['nama_kategori'] ?? null;
+    }
+
+    public function setJudulAttribute(?string $value): void
+    {
+        $this->attributes['title'] = $value;
+        $this->attributes['nama_kategori'] = $value;
+    }
+
+    public function getDeskripsiAttribute(): ?string
+    {
+        return $this->attributes['description'] ?? null;
+    }
+
+    public function setDeskripsiAttribute(?string $value): void
+    {
+        $this->attributes['description'] = $value;
     }
 }
+

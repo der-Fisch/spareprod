@@ -18,3 +18,4 @@ class UpdateCartItemRequest extends FormRequest
         ];
     }
 }
+

@@ -12,15 +12,15 @@
         <h1>Spare part kendaraan yang tampil profesional, cepat dicari, dan siap dibeli.</h1>
         <p>Spare Soko menggabungkan katalog spare part, kategori yang rapi, dan storefront yang profesional untuk pengalaman belanja yang lebih meyakinkan.</p>
         <div class="landing-actions">
-          <a href="{{ $browseUrl }}" class="btn btn-primary btn-lg">Jelajahi Produk</a>
+          <a href="{{ $browseUrl }}" class="btn btn-primary btn-lg">Browse Products</a>
           <a href="#catalog-preview" class="btn btn-ghost btn-lg" data-scroll-target="catalog-preview">Explore Preview</a>
         </div>
       </div>
       <div class="landing-visual-card">
-        <img src="{{ $featuredProduct?->image_url ?? asset('theme/img/products/ceramic-brake-pad-set.jpg') }}" alt="{{ $featuredProduct?->title ?? 'Brake pad set' }}" class="landing-hero-image">
+        <img src="{{ $featuredProduct?->image_url ?? asset('theme/img/produk/ceramic-brake-pad-set.jpg') }}" alt="{{ $featuredProduct?->judul ?? 'Brake pad set' }}" class="landing-hero-image">
         <div class="landing-visual-caption">
           <span class="landing-kicker">Featured Pick</span>
-          <h3>{{ $featuredProduct?->title ?? 'Ceramic Brake Pad Set' }}</h3>
+          <h3>{{ $featuredProduct?->judul ?? 'Ceramic Brake Pad Set' }}</h3>
           <p>Katalog dibuat untuk membantu pelanggan menemukan komponen yang tepat tanpa tampilan yang berantakan.</p>
         </div>
       </div>
@@ -32,7 +32,7 @@
       <div class="section-heading landing-heading">
         <div>
           <span class="eyebrow">Product Preview</span>
-          <h2>Lihat pilihan produk unggulan dari katalog utama</h2>
+          <h2>Lihat pilihan product unggulan dari katalog utama</h2>
         </div>
         <div class="landing-heading-actions">
           <a href="{{ $browseUrl }}" class="section-link">All Products</a>
@@ -66,7 +66,7 @@
         <article class="value-card">
           <i class="fa fa-bolt"></i>
           <h3>Pencarian Lebih Cepat</h3>
-          <p>Produk dan kategori disusun agar user lebih cepat sampai ke barang yang dicari tanpa harus membuka banyak halaman.</p>
+          <p>Products dan kategori disusun agar user lebih cepat sampai ke barang yang dicari tanpa harus membuka banyak halaman.</p>
         </article>
         <article class="value-card">
           <i class="fa fa-shield"></i>
@@ -129,3 +129,4 @@
     </div>
   </section>
 @endsection
+

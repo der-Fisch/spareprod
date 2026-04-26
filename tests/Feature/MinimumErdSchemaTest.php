@@ -89,3 +89,4 @@ class MinimumErdSchemaTest extends TestCase
         $this->assertNotNull(UserCheckout::query()->where('email', 'user@user.com')->first());
     }
 }
+

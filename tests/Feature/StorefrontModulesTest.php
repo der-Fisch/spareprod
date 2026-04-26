@@ -175,7 +175,7 @@ class StorefrontModulesTest extends TestCase
                     ['label' => 'Tegangan', 'value' => '12V'],
                 ],
                 'image_entries' => [
-                    ['image_path' => 'theme/img/products/battery-terminal-clamp.jpg', 'alt_text' => 'Clamp utama'],
+                    ['image_path' => 'theme/img/produk/battery-terminal-clamp.jpg', 'alt_text' => 'Clamp utama'],
                     ['image_path' => 'theme/img/marketing1.jpg', 'alt_text' => 'Clamp kedua'],
                 ],
                 'active' => '1',
@@ -227,7 +227,7 @@ class StorefrontModulesTest extends TestCase
         $category = Category::query()->where('slug', 'brakes')->firstOrFail();
 
         $response = $this->actingAs($admin)->post('/admin/products/create', [
-            'title' => 'Minimal Product',
+            'title' => 'Minimal Produk',
             'price' => '12.50',
             'stok' => '30',
             'category_id' => (string) $category->id,
@@ -239,7 +239,7 @@ class StorefrontModulesTest extends TestCase
         $response->assertJson(['success' => true]);
 
         $this->assertDatabaseHas('products', [
-            'title' => 'Minimal Product',
+            'title' => 'Minimal Produk',
             'default_category_id' => $category->id,
             'stok' => 30,
         ]);
@@ -402,3 +402,4 @@ class StorefrontModulesTest extends TestCase
         );
     }
 }
+

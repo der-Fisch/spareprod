@@ -18,6 +18,8 @@ class User extends Authenticatable
         'email',
         'first_name',
         'last_name',
+        'nama_depan',
+        'nama_belakang',
         'is_active',
         'is_staff',
         'role',
@@ -73,7 +75,7 @@ class User extends Authenticatable
 
     public function getNameAttribute(): string
     {
-        return trim($this->first_name . ' ' . $this->last_name) ?: $this->username;
+        return trim($this->nama_depan . ' ' . $this->nama_belakang) ?: $this->username;
     }
 
     public function getRoleLabelAttribute(): string
@@ -85,4 +87,25 @@ class User extends Authenticatable
     {
         return $this->username;
     }
+
+    public function getNamaDepanAttribute(): ?string
+    {
+        return $this->attributes['first_name'] ?? null;
+    }
+
+    public function setNamaDepanAttribute(?string $value): void
+    {
+        $this->attributes['first_name'] = $value;
+    }
+
+    public function getNamaBelakangAttribute(): ?string
+    {
+        return $this->attributes['last_name'] ?? null;
+    }
+
+    public function setNamaBelakangAttribute(?string $value): void
+    {
+        $this->attributes['last_name'] = $value;
+    }
 }
+

@@ -2,12 +2,12 @@
   $addressId = $address?->id;
   $defaults = [
     'label' => old('label', $address?->label),
-    'recipient_name' => old('recipient_name', $address?->recipient_name ?: auth()->user()->name),
-    'phone_number' => old('phone_number', $address?->phone_number),
-    'street' => old('street', $address?->street),
-    'city' => old('city', $address?->city),
-    'state' => old('state', $address?->state),
-    'zipcode' => old('zipcode', $address?->zipcode),
+    'nama_penerima' => old('nama_penerima', $address?->nama_penerima ?: auth()->user()->name),
+    'nomor_whatsapp' => old('nomor_whatsapp', $address?->nomor_whatsapp),
+    'nama_jalan' => old('nama_jalan', $address?->nama_jalan),
+    'nama_kota' => old('nama_kota', $address?->nama_kota),
+    'negara' => old('negara', $address?->negara),
+    'kode_pos' => old('kode_pos', $address?->kode_pos),
     'is_default' => old('is_default', $address?->is_default ? 1 : 0),
   ];
 @endphp
@@ -36,39 +36,39 @@
           </div>
 
           <div class="form-group">
-            <label for="{{ $modalId }}-recipient_name">Nama Penerima</label>
-            <input id="{{ $modalId }}-recipient_name" type="text" name="recipient_name" class="form-control" value="{{ $defaults['recipient_name'] }}" required>
-            @foreach ($errorBag->get('recipient_name') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+            <label for="{{ $modalId }}-nama_penerima">Nama Penerima</label>
+            <input id="{{ $modalId }}-nama_penerima" type="text" name="nama_penerima" class="form-control" value="{{ $defaults['nama_penerima'] }}" required>
+            @foreach ($errorBag->get('nama_penerima') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
           </div>
 
           <div class="form-group">
-            <label for="{{ $modalId }}-phone_number">Nomor HP</label>
-            <input id="{{ $modalId }}-phone_number" type="text" name="phone_number" class="form-control" value="{{ $defaults['phone_number'] }}" required>
-            @foreach ($errorBag->get('phone_number') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+            <label for="{{ $modalId }}-nomor_whatsapp">Nomor WhatsApp</label>
+            <input id="{{ $modalId }}-nomor_whatsapp" type="text" name="nomor_whatsapp" class="form-control" value="{{ $defaults['nomor_whatsapp'] }}" required>
+            @foreach ($errorBag->get('nomor_whatsapp') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
           </div>
 
           <div class="form-group form-group-span-2">
-            <label for="{{ $modalId }}-street">Jalan / Detail Alamat</label>
-            <input id="{{ $modalId }}-street" type="text" name="street" class="form-control" value="{{ $defaults['street'] }}" required>
-            @foreach ($errorBag->get('street') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+            <label for="{{ $modalId }}-nama_jalan">Jalan / Detail Alamat</label>
+            <input id="{{ $modalId }}-nama_jalan" type="text" name="nama_jalan" class="form-control" value="{{ $defaults['nama_jalan'] }}" required>
+            @foreach ($errorBag->get('nama_jalan') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
           </div>
 
           <div class="form-group">
-            <label for="{{ $modalId }}-city">Kota / Kabupaten</label>
-            <input id="{{ $modalId }}-city" type="text" name="city" class="form-control" value="{{ $defaults['city'] }}" required>
-            @foreach ($errorBag->get('city') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+            <label for="{{ $modalId }}-nama_kota">Kota / Kabupaten</label>
+            <input id="{{ $modalId }}-nama_kota" type="text" name="nama_kota" class="form-control" value="{{ $defaults['nama_kota'] }}" required>
+            @foreach ($errorBag->get('nama_kota') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
           </div>
 
           <div class="form-group">
-            <label for="{{ $modalId }}-state">Provinsi</label>
-            <input id="{{ $modalId }}-state" type="text" name="state" class="form-control" value="{{ $defaults['state'] }}" required>
-            @foreach ($errorBag->get('state') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+            <label for="{{ $modalId }}-negara">Negara</label>
+            <input id="{{ $modalId }}-negara" type="text" name="negara" class="form-control" value="{{ $defaults['negara'] }}" required>
+            @foreach ($errorBag->get('negara') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
           </div>
 
           <div class="form-group">
-            <label for="{{ $modalId }}-zipcode">Kode Pos</label>
-            <input id="{{ $modalId }}-zipcode" type="text" name="zipcode" class="form-control" value="{{ $defaults['zipcode'] }}" required>
-            @foreach ($errorBag->get('zipcode') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
+            <label for="{{ $modalId }}-kode_pos">Kode Pos</label>
+            <input id="{{ $modalId }}-kode_pos" type="text" name="kode_pos" class="form-control" value="{{ $defaults['kode_pos'] }}" required>
+            @foreach ($errorBag->get('kode_pos') as $message)<p class="text-danger">{{ $message }}</p>@endforeach
           </div>
 
           <div class="form-group form-group-span-2">
@@ -87,3 +87,4 @@
     </div>
   </div>
 </div>
+

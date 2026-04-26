@@ -26,3 +26,4 @@ class UserCheckout extends Model
         return $this->hasMany(UserAddress::class);
     }
 }
+

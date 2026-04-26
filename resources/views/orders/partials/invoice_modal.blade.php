@@ -1,7 +1,7 @@
 @php
   $invoiceModalId = $modalId ?? ('invoice-modal-' . $order->id);
   $invoiceAddress = trim((string) $order->shippingAddress?->address);
-  $invoiceRecipient = trim((string) $order->shippingAddress?->recipient_name);
+  $invoiceRecipient = trim((string) $order->shippingAddress?->nama_penerima);
   $invoiceCustomerEmail = $order->user?->email ?: $order->accountUser?->email ?: '-';
   $invoiceDate = optional($order->tanggal_transaksi ?: $order->created_at)->format('d M Y, H:i');
 @endphp
@@ -57,14 +57,14 @@
           <table class="table invoice-table">
             <thead>
               <tr>
-                <th>Produk</th>
+                <th>Product</th>
                 <th class="text-center">Qty</th>
                 <th class="text-right">Harga</th>
               </tr>
             </thead>
             <tbody>
               @foreach ($order->presentedItems() as $item)
-                @php($productTitle = $item->product_title ?? $item->item?->product?->title ?? 'Produk')
+                @php($productTitle = $item->product_title ?? $item->item?->product?->judul ?? 'Product')
                 <tr>
                   <td>
                     <strong>{{ $productTitle }}</strong>

@@ -177,6 +177,11 @@ class Order extends Model
         return (float) ($this->items_tax_total ?? $this->cart?->tax_total ?? 0);
     }
 
+    public function getTotalPajakAttribute(): float
+    {
+        return $this->displayTaxTotal();
+    }
+
     public function displayItemsTotal(): float
     {
         return (float) ($this->items_total ?? $this->cart?->total ?? 0);
@@ -188,7 +193,7 @@ class Order extends Model
             ->map(function ($item) {
                 $title = $item->product_title
                     ?? $item->item?->product?->title
-                    ?? 'Produk';
+                    ?? 'Product';
 
                 $quantity = (int) ($item->quantity ?? $item->pivot?->quantity ?? 0);
 
@@ -230,3 +235,4 @@ class Order extends Model
             ->value('products.kode_produk');
     }
 }
+

@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', $product->title . ' | Spare Soko')
+@section('title', $product->judul . ' | Spare Soko')
 
 @section('content')
   <div class="row product-detail-layout">
     <div class="col-md-7">
-      @php($galleryImages = $product->images->isNotEmpty() ? $product->images : collect([(object) ['image_url' => $product->image_url, 'alt_text' => $product->title]]))
+      @php($galleryImages = $product->images->isNotEmpty() ? $product->images : collect([(object) ['image_url' => $product->image_url, 'alt_text' => $product->judul]]))
       @php($hasSkuData = filled($product->sku))
       @php($hasBrandData = filled($product->brand_name))
       @php($hasTechnicalSpecs = !empty($product->technical_specs))
@@ -15,7 +15,7 @@
           <div class="product-gallery-stage">
             @foreach ($galleryImages as $index => $image)
               <figure class="product-gallery-slide{{ $index === 0 ? ' is-active' : '' }}" data-gallery-slide>
-                <img class="img-responsive" src="{{ $image->image_url }}" alt="{{ $image->alt_text ?: $product->title }}">
+                <img class="img-responsive" src="{{ $image->image_url }}" alt="{{ $image->alt_text ?: $product->judul }}">
               </figure>
             @endforeach
 
@@ -32,14 +32,14 @@
       </div>
 
       <div class="info-card">
-        <h3>Ringkasan Produk</h3>
-        <p class="lead">{{ $product->description }}</p>
+        <h3>Product Summary</h3>
+        <p class="lead">{{ $product->deskripsi }}</p>
         <div class="product-overview-stack">
           @if ($hasSkuData || $hasBrandData)
             <div class="product-overview-grid">
               @if ($hasSkuData)
                 <section class="product-overview-panel">
-                  <span class="product-section-label">SKU Produk</span>
+                  <span class="product-section-label">Product SKU</span>
                   <div class="product-copy-list">
                     @if (filled($product->sku))
                       <div class="product-copy-item">
@@ -114,7 +114,7 @@
     <div class="col-md-5">
       <div class="purchase-card">
         <div class="purchase-card-header">
-          <span class="eyebrow">Purchase Panel</span>
+          <span class="eyebrow">Panel Pembelian</span>
           <h3>Siap menambahkan produk ini?</h3>
         </div>
 
@@ -134,7 +134,7 @@
           @endif
 
           <div class="variant-stock-note">
-            <span class="product-micro-label">Stok Produk</span>
+            <span class="product-micro-label">Product Stock</span>
             <div class="variant-stock-copy">
               <strong>{{ $product->stock_display_label }}</strong>
               <span class="product-chip {{ $product->stock_badge_class }}">{{ $product->stock_badge_label }}</span>
@@ -145,7 +145,7 @@
           <input id="qty-input" class="form-control" type="number" name="quantity" value="1" min="1">
 
           <div class="purchase-actions">
-            <button id="submit-btn" type="submit" class="btn btn-primary btn-block" @disabled(! $cartItemId)>Tambah ke Keranjang</button>
+            <button id="submit-btn" type="submit" class="btn btn-primary btn-block" @disabled(! $cartItemId)>Add to Cart</button>
             <a href="{{ route('products.index') }}" class="btn btn-secondary btn-block">Kembali ke Katalog</a>
           </div>
         </form>
@@ -157,7 +157,7 @@
       </div>
 
       <div class="info-card">
-        <h4>Bagikan Produk</h4>
+        <h4>Share Product</h4>
         <div class="share-links">
           <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(request()->fullUrl()) }}"><i class="fa fa-facebook-square"></i> Facebook</a>
           <a href="javascript:void(0)"><i class="fa fa-twitter-square"></i> Twitter</a>
@@ -167,8 +167,8 @@
       <div class="info-card">
         <div class="section-heading section-heading-tight">
           <div>
-            <span class="eyebrow">Produk Terkait</span>
-            <h3>Produk lain yang mungkin Anda butuhkan</h3>
+            <span class="eyebrow">Related Products</span>
+            <h3>Products lain yang mungkin Anda butuhkan</h3>
           </div>
         </div>
 
@@ -187,3 +187,4 @@
     </div>
   </div>
 @endsection
+

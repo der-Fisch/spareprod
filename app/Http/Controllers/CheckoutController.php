@@ -27,34 +27,34 @@ class CheckoutController extends Controller
         $cart->load('cartItems.item.product.images');
 
         if ($cart->items()->count() < 1) {
-            return redirect()->route('cart');
+            return redirect()->route('cart.index');
         }
 
         $selectedItems = $this->cartService->selectedItems($cart);
         if ($selectedItems->isEmpty()) {
-            return redirect()->route('cart')->with('info', 'Pilih minimal satu produk di keranjang untuk lanjut checkout.');
+            return redirect()->route('cart.index')->with('info', 'Pilih minimal satu product di cart untuk lanjut checkout.');
         }
 
-        if ($stockIssueMessage = $this->cartService->stockIssueSummary($selectedItems)) {
-            return redirect()->route('cart')->with('error', $stockIssueMessage);
+        if ($stockIssueSummary = $this->cartService->stockIssueSummary($selectedItems)) {
+            return redirect()->route('cart.index')->with('error', $stockIssueSummary);
         }
 
         $userCanContinue = false;
-        $userCheckout = null;
+        $checkoutUser = null;
 
         if ($request->user()) {
-            $userCheckout = $this->checkoutService->resolveUserCheckout($request);
+            $checkoutUser = $this->checkoutService->resolveCheckoutUser($request);
             $userCanContinue = true;
         } elseif ($request->session()->has('user_checkout_id')) {
-            $userCheckout = UserCheckout::query()->find($request->session()->get('user_checkout_id'));
-            $userCanContinue = $userCheckout !== null;
+            $checkoutUser = UserCheckout::query()->find($request->session()->get('user_checkout_id'));
+            $userCanContinue = $checkoutUser !== null;
         }
 
         $order = $this->checkoutService->resolveOrder($request, $cart);
 
-        if ($userCheckout) {
-            $order->user()->associate($userCheckout);
-            $defaultAddress = $order->shippingAddress ?: $userCheckout->addresses()->orderByDesc('is_default')->latest('id')->first();
+        if ($checkoutUser) {
+            $order->user()->associate($checkoutUser);
+            $defaultAddress = $order->shippingAddress ?: $checkoutUser->addresses()->orderByDesc('is_default')->latest('id')->first();
 
             if ($defaultAddress && ! $order->shipping_address_id) {
                 $order->shippingAddress()->associate($defaultAddress);
@@ -66,7 +66,7 @@ class CheckoutController extends Controller
         $order->save();
         $this->checkoutService->syncOrderSnapshot($order, $cart, $selectedItems);
 
-        if ($userCheckout && ! $order->shipping_address_id) {
+        if ($checkoutUser && ! $order->shipping_address_id) {
             return redirect()->route('checkout.address');
         }
 
@@ -80,19 +80,19 @@ class CheckoutController extends Controller
 
     public function guest(GuestCheckoutRequest $request): RedirectResponse
     {
-        $userCheckout = UserCheckout::query()->firstOrCreate([
+        $checkoutUser = UserCheckout::query()->firstOrCreate([
             'email' => $request->validated('email'),
         ]);
 
-        $request->session()->put('user_checkout_id', $userCheckout->id);
+        $request->session()->put('user_checkout_id', $checkoutUser->id);
 
         return redirect()->route('checkout');
     }
 
     public function address(Request $request): View|RedirectResponse
     {
-        $checkout = $this->checkoutService->resolveUserCheckout($request, false);
-        if (! $checkout) {
+        $checkoutUser = $this->checkoutService->resolveCheckoutUser($request, false);
+        if (! $checkoutUser) {
             return redirect()->route('checkout');
         }
 
@@ -101,10 +101,10 @@ class CheckoutController extends Controller
 
         $selectedItems = $this->cartService->selectedItems($cart);
         if ($selectedItems->isEmpty()) {
-            return redirect()->route('cart')->with('info', 'Pilih minimal satu produk di keranjang untuk lanjut checkout.');
+            return redirect()->route('cart.index')->with('info', 'Pilih minimal satu product di cart untuk lanjut checkout.');
         }
 
-        $shippingAddresses = $checkout->addresses()->orderByDesc('is_default')->latest('id')->get();
+        $shippingAddresses = $checkoutUser->addresses()->orderByDesc('is_default')->latest('id')->get();
 
         if ($shippingAddresses->isEmpty()) {
             return redirect()->route('checkout.address.create')->with('info', 'Silakan tambahkan alamat pengiriman terlebih dahulu.');
@@ -121,23 +121,23 @@ class CheckoutController extends Controller
 
     public function storeAddressSelection(StoreCheckoutAddressSelectionRequest $request): RedirectResponse
     {
-        $checkout = $this->checkoutService->resolveUserCheckout($request, false);
-        if (! $checkout) {
+        $checkoutUser = $this->checkoutService->resolveCheckoutUser($request, false);
+        if (! $checkoutUser) {
             return redirect()->route('checkout');
         }
 
-        $shipping = $checkout->addresses()->whereKey($request->validated('shipping_address'))->firstOrFail();
+        $shippingAddress = $checkoutUser->addresses()->whereKey($request->validated('shipping_address'))->firstOrFail();
         $cart = $this->cartService->resolveCart($request);
         $selectedItems = $this->cartService->selectedItems($cart);
 
         if ($selectedItems->isEmpty()) {
-            return redirect()->route('cart')->with('info', 'Pilih minimal satu produk di keranjang untuk lanjut checkout.');
+            return redirect()->route('cart.index')->with('info', 'Pilih minimal satu product di cart untuk lanjut checkout.');
         }
 
         $order = $this->checkoutService->resolveOrder($request, $cart);
         $this->checkoutService->syncOrderSnapshot($order, $cart, $selectedItems);
-        $order->shippingAddress()->associate($shipping);
-        $order->billingAddress()->associate($shipping);
+        $order->shippingAddress()->associate($shippingAddress);
+        $order->billingAddress()->associate($shippingAddress);
         $order->save();
 
         return redirect()->route('checkout');
@@ -145,7 +145,7 @@ class CheckoutController extends Controller
 
     public function createAddress(Request $request): View|RedirectResponse
     {
-        if (! $this->checkoutService->resolveUserCheckout($request, false)) {
+        if (! $this->checkoutService->resolveCheckoutUser($request, false)) {
             return redirect()->route('checkout');
         }
 
@@ -154,27 +154,27 @@ class CheckoutController extends Controller
 
     public function storeAddress(StoreCheckoutAddressRequest $request): RedirectResponse
     {
-        $checkout = $this->checkoutService->resolveUserCheckout($request, false);
-        if (! $checkout) {
+        $checkoutUser = $this->checkoutService->resolveCheckoutUser($request, false);
+        if (! $checkoutUser) {
             return redirect()->route('checkout');
         }
 
-        $validated = $request->validated();
+        $validatedData = $request->validated();
 
-        $address = $checkout->addresses()->create([
-            'label' => $validated['label'] ?? 'Alamat',
-            'recipient_name' => $validated['recipient_name'],
-            'phone_number' => $validated['phone_number'],
-            'type' => 'shipping',
-            'street' => $validated['street'],
-            'city' => $validated['city'],
-            'state' => $validated['state'],
-            'zipcode' => $validated['zipcode'],
-            'is_default' => ! $checkout->addresses()->exists() || ! empty($validated['is_default']),
+        $address = $checkoutUser->addresses()->create([
+            'label' => $validatedData['label'] ?? 'Alamat',
+            'nama_penerima' => $validatedData['nama_penerima'],
+            'nomor_whatsapp' => $validatedData['nomor_whatsapp'],
+            'tipe' => 'shipping',
+            'nama_jalan' => $validatedData['nama_jalan'],
+            'nama_kota' => $validatedData['nama_kota'],
+            'negara' => $validatedData['negara'],
+            'kode_pos' => $validatedData['kode_pos'],
+            'is_default' => ! $checkoutUser->addresses()->exists() || ! empty($validatedData['is_default']),
         ]);
 
         if ($address->is_default) {
-            $checkout->addresses()->whereKeyNot($address->id)->update(['is_default' => false]);
+            $checkoutUser->addresses()->whereKeyNot($address->id)->update(['is_default' => false]);
         }
 
         return redirect()->route('checkout.address')->with('success', 'Alamat pengiriman berhasil disimpan.');
@@ -187,11 +187,11 @@ class CheckoutController extends Controller
         $order = $this->checkoutService->resolveOrder($request, $cart, false);
 
         if (! $order || $selectedItems->isEmpty()) {
-            return redirect()->route('cart')->with('info', 'Pilih minimal satu produk di keranjang untuk lanjut checkout.');
+            return redirect()->route('cart.index')->with('info', 'Pilih minimal satu product di cart untuk lanjut checkout.');
         }
 
-        if ($stockIssueMessage = $this->cartService->stockIssueSummary($selectedItems)) {
-            return redirect()->route('cart')->with('error', $stockIssueMessage);
+        if ($stockIssueSummary = $this->cartService->stockIssueSummary($selectedItems)) {
+            return redirect()->route('cart.index')->with('error', $stockIssueSummary);
         }
 
         $this->checkoutService->syncOrderSnapshot($order, $cart, $selectedItems);
@@ -215,6 +215,6 @@ class CheckoutController extends Controller
 
         return redirect()
             ->route('orders.show', $order)
-            ->with('checkout_success', 'Pesanan berhasil dibuat dan item terpilih telah dipindahkan dari keranjang.');
+            ->with('checkout_success', 'Pesanan berhasil dibuat dan item terpilih telah dipindahkan dari cart.');
     }
 }

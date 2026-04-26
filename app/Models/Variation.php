@@ -132,3 +132,4 @@ class Variation extends Model
         return 'Rp' . number_format((float) $value * 10000, 0, ',', '.');
     }
 }
+

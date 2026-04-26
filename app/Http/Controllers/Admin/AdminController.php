@@ -19,7 +19,7 @@ use Throwable;
 class AdminController extends Controller
 {
     public function __construct(
-        protected AdminEntityService $entityService,
+        protected AdminEntityService $layananEntitas,
     ) {
     }
 
@@ -55,8 +55,8 @@ class AdminController extends Controller
                     ->get()
                     ->map(function (Product $product) {
                         return [
-                            'type' => 'Produk',
-                            'title' => $product->title,
+                            'type' => 'Product',
+                            'title' => $product->judul,
                             'meta' => $product->defaultCategory?->title ?? 'Tanpa kategori',
                             'detail' => 'Data produk baru ditambahkan ke katalog.',
                             'recorded_at' => $product->created_at,
@@ -87,7 +87,7 @@ class AdminController extends Controller
         return view('admin.dashboard', [
             'page_title' => 'Dashboard',
             'cards' => [
-                ['label' => 'Total Products', 'value' => Product::query()->count(), 'accent' => 'orange', 'icon' => 'fa-cubes', 'note' => 'Produk aktif di katalog'],
+                ['label' => 'Total Products', 'value' => Product::query()->count(), 'accent' => 'orange', 'icon' => 'fa-cubes', 'note' => 'Product aktif di katalog'],
                 ['label' => 'Total Categories', 'value' => Category::query()->count(), 'accent' => 'amber', 'icon' => 'fa-tags', 'note' => 'Kategori yang tersedia'],
                 ['label' => 'Total Orders', 'value' => Order::query()->count(), 'accent' => 'green', 'icon' => 'fa-shopping-cart', 'note' => 'Order yang tersimpan'],
             ],
@@ -95,8 +95,8 @@ class AdminController extends Controller
             'revenue_rows' => $revenueRows,
             'recent_rows' => $recentRows,
             'quick_actions' => [
-                ['label' => 'Tambah Produk', 'url' => route('admin.entity.modal.create', ['entity' => 'products', 'mode' => 'create']), 'kind' => 'modal'],
-                ['label' => 'Lihat Produk', 'url' => route('admin.entity.list', ['entity' => 'products']), 'kind' => 'link'],
+                ['label' => 'Tambah Product', 'url' => route('admin.entity.modal.create', ['entity' => 'products', 'mode' => 'create']), 'kind' => 'modal'],
+                ['label' => 'Lihat Product', 'url' => route('admin.entity.list', ['entity' => 'products']), 'kind' => 'link'],
                 ['label' => 'Kelola Orders', 'url' => route('admin.entity.list', ['entity' => 'orders']), 'kind' => 'link'],
             ],
         ]);
@@ -186,7 +186,8 @@ class AdminController extends Controller
             ]);
         }
 
-        $validator = Validator::make($request->all(), $config['rules']($object), $config['messages'] ?? []);
+        $payload = $this->normalizeEntityPayload($entity, $request->all());
+        $validator = Validator::make($payload, $config['rules']($object), $config['messages'] ?? []);
 
         if ($validator->fails()) {
             return response()->json([
@@ -196,14 +197,14 @@ class AdminController extends Controller
                     'config' => $config,
                     'mode' => $mode,
                     'object' => $object,
-                    'input' => $request->all(),
+                    'input' => $payload,
                     'errorsBag' => $validator->errors(),
                 ])->render(),
             ], 400);
         }
 
         try {
-            $this->entityService->persist($entity, $validator->validated(), $object);
+            $this->layananEntitas->simpan($entity, $validator->validated(), $object);
         } catch (Throwable $exception) {
             Log::error('Admin entity save failed.', [
                 'entity' => $entity,
@@ -219,7 +220,7 @@ class AdminController extends Controller
                     'config' => $config,
                     'mode' => $mode,
                     'object' => $object,
-                    'input' => $request->all(),
+                    'input' => $payload,
                     'errorsBag' => new MessageBag([
                         'general' => ['Data belum bisa disimpan. Periksa kembali field yang diisi lalu coba lagi.'],
                     ]),
@@ -238,23 +239,23 @@ class AdminController extends Controller
         $configs = [
             'categories' => [
                 'label' => 'Categories',
-                'singular' => 'Category',
+                'singular' => 'Kategori',
                 'model' => Category::class,
                 'can_create' => true,
                 'can_update' => true,
                 'columns' => [
-                    ['label' => 'Kategori', 'key' => 'title'],
+                    ['label' => 'Kategori', 'key' => 'judul'],
                     ['label' => 'Status', 'key' => 'active', 'type' => 'boolean'],
                 ],
                 'fields' => [
-                    ['name' => 'title', 'label' => 'Nama Kategori', 'type' => 'text', 'placeholder' => 'Contoh: Cooling System'],
-                    ['name' => 'description', 'label' => 'Deskripsi', 'type' => 'textarea', 'placeholder' => 'Jelaskan kategori ini secara singkat.'],
+                    ['name' => 'judul', 'label' => 'Nama Kategori', 'type' => 'text', 'placeholder' => 'Contoh: Cooling System'],
+                    ['name' => 'deskripsi', 'label' => 'Deskripsi', 'type' => 'textarea', 'placeholder' => 'Jelaskan kategori ini secara singkat.'],
                     ['name' => 'active', 'label' => 'Aktif', 'type' => 'checkbox'],
                 ],
                 'summary' => fn (Builder $query) => ['Total Categories' => (clone $query)->count(), 'Active' => (clone $query)->where('active', true)->count()],
                 'rules' => fn (?Category $category) => [
-                    'title' => ['required', 'string', 'max:255'],
-                    'description' => ['nullable', 'string'],
+                    'judul' => ['required', 'string', 'max:255'],
+                    'deskripsi' => ['nullable', 'string'],
                     'active' => ['nullable', 'boolean'],
                 ],
             ],
@@ -266,19 +267,19 @@ class AdminController extends Controller
                 'can_update' => true,
                 'columns' => [
                     ['label' => 'Gambar', 'key' => 'image_url', 'type' => 'image'],
-                    ['label' => 'Product', 'key' => 'title'],
+                    ['label' => 'Product', 'key' => 'judul'],
                     ['label' => 'Kategori', 'key' => 'defaultCategory.title'],
                     ['label' => 'Stock', 'key' => 'stock_display_label'],
-                    ['label' => 'Price', 'key' => 'price', 'type' => 'currency_catalog'],
+                    ['label' => 'Harga', 'key' => 'harga', 'type' => 'currency_catalog'],
                     ['label' => 'Status', 'key' => 'active', 'type' => 'boolean'],
                 ],
                 'fields' => [
-                    ['name' => 'title', 'label' => 'Title', 'type' => 'text', 'placeholder' => 'Contoh: Battery Terminal Clamp'],
-                    ['name' => 'description', 'label' => 'Description', 'type' => 'textarea', 'placeholder' => 'Jelaskan fungsi singkat, keunggulan, dan penggunaan produk.'],
+                    ['name' => 'judul', 'label' => 'Judul', 'type' => 'text', 'placeholder' => 'Contoh: Battery Terminal Clamp'],
+                    ['name' => 'deskripsi', 'label' => 'Deskripsi', 'type' => 'textarea', 'placeholder' => 'Jelaskan fungsi singkat, keunggulan, dan penggunaan produk.'],
                     ['name' => 'sku', 'label' => 'SKU', 'type' => 'text', 'placeholder' => 'Contoh: BTC-12V-009'],
-                    ['name' => 'brand_name', 'label' => 'Brand Name', 'type' => 'text', 'placeholder' => 'Contoh: Bosch'],
+                    ['name' => 'brand_name', 'label' => 'Merek Name', 'type' => 'text', 'placeholder' => 'Contoh: Bosch'],
                     ['name' => 'warranty_label', 'label' => 'Warranty Label', 'type' => 'text', 'placeholder' => 'Contoh: Garansi Resmi 1 Bulan'],
-                    ['name' => 'price', 'label' => 'Price', 'type' => 'currency_catalog', 'placeholder' => 'Contoh: Rp145.000'],
+                    ['name' => 'harga', 'label' => 'Harga', 'type' => 'currency_catalog', 'placeholder' => 'Contoh: Rp145.000'],
                     ['name' => 'stok', 'label' => 'Stock', 'type' => 'number', 'placeholder' => 'Contoh: 24'],
                     ['name' => 'category_id', 'label' => 'Kategori', 'type' => 'select', 'options' => Category::query()->orderBy('title')->pluck('title', 'id')->all(), 'placeholder' => 'Pilih kategori produk'],
                     ['name' => 'compatibility_entries', 'label' => 'Compatibilities', 'type' => 'compatibility_repeater', 'help_text' => 'Tambahkan kendaraan yang didukung satu per satu.'],
@@ -288,7 +289,7 @@ class AdminController extends Controller
                 ],
                 'detail_fields' => [
                     ['label' => 'SKU', 'key' => 'sku'],
-                    ['label' => 'Brand', 'key' => 'brand_name'],
+                    ['label' => 'Merek', 'key' => 'brand_name'],
                     ['label' => 'Warranty', 'key' => 'warranty_label'],
                     ['label' => 'Stock', 'key' => 'stock_display_label'],
                     ['label' => 'Compatibilities', 'key' => 'compatibility_list', 'type' => 'list'],
@@ -297,12 +298,12 @@ class AdminController extends Controller
                 ],
                 'summary' => fn (Builder $query) => ['Total Products' => (clone $query)->count(), 'Active' => (clone $query)->where('active', true)->count()],
                 'rules' => fn (?Product $product) => [
-                    'title' => ['required', 'string', 'max:255'],
-                    'description' => ['nullable', 'string'],
+                    'judul' => ['required', 'string', 'max:255'],
+                    'deskripsi' => ['nullable', 'string'],
                     'sku' => ['nullable', 'string', 'max:255'],
                     'brand_name' => ['nullable', 'string', 'max:255'],
                     'warranty_label' => ['nullable', 'string', 'max:255'],
-                    'price' => ['required', 'numeric', 'min:0'],
+                    'harga' => ['required', 'numeric', 'min:0'],
                     'stok' => ['required', 'integer', 'min:0'],
                     'category_id' => ['nullable', 'exists:categories,id'],
                     'compatibility_entries' => ['nullable', 'array'],
@@ -339,7 +340,7 @@ class AdminController extends Controller
                 'detail_fields' => [
                     ['label' => 'Order ID', 'key' => 'order_id'],
                     ['label' => 'Customer', 'key' => 'user.email'],
-                    ['label' => 'Produk Dibeli', 'key' => 'display_item_summaries', 'type' => 'list'],
+                    ['label' => 'Product Dibeli', 'key' => 'display_item_summaries', 'type' => 'list'],
                     ['label' => 'Status', 'key' => 'status_label'],
                     ['label' => 'Alamat Pengiriman', 'key' => 'shippingAddress.address'],
                     ['label' => 'Total Pembayaran', 'key' => 'total_bayar', 'type' => 'currency_catalog'],
@@ -384,12 +385,12 @@ class AdminController extends Controller
     {
         return match ($entity) {
             'products' => [
-                'title' => $object->title,
-                'description' => $object->description,
+                'judul' => $object->judul,
+                'deskripsi' => $object->deskripsi,
                 'sku' => $object->sku,
                 'brand_name' => $object->brand_name,
                 'warranty_label' => $object->warranty_label,
-                'price' => $object->price,
+                'harga' => $object->harga,
                 'stok' => $object->stok,
                 'category_id' => $object->default_category_id ?: $object->categories()->pluck('categories.id')->first(),
                 'compatibility_entries' => $object->compatibilities
@@ -444,5 +445,21 @@ class AdminController extends Controller
         }
 
         return [(int) $pkOrMode, $mode];
+    }
+
+    protected function normalizeEntityPayload(string $entity, array $payload): array
+    {
+        if ($entity === 'categories') {
+            $payload['judul'] ??= $payload['title'] ?? null;
+            $payload['deskripsi'] ??= $payload['description'] ?? null;
+        }
+
+        if ($entity === 'products') {
+            $payload['judul'] ??= $payload['title'] ?? null;
+            $payload['deskripsi'] ??= $payload['description'] ?? null;
+            $payload['harga'] ??= $payload['price'] ?? null;
+        }
+
+        return $payload;
     }
 }

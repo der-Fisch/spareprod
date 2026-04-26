@@ -44,16 +44,16 @@ class CatalogPagesTest extends TestCase
 
         $response->assertOk();
         $response->assertSee($product->title, false);
-        $response->assertSee('SKU Produk', false);
+        $response->assertSee('Product SKU', false);
         $response->assertSee('Spesifikasi Teknis', false);
         $response->assertDontSee('Rating', false);
         $response->assertDontSee('OEM', false);
-        $response->assertDontSee('Brand Type', false);
+        $response->assertDontSee('Merek Type', false);
         $response->assertDontSee('ulasan', false);
-        $response->assertSee('Stok Produk', false);
+        $response->assertSee('Product Stock', false);
         $response->assertSee('Gambar berikutnya', false);
         $response->assertDontSee('Kompatibilitas', false);
-        $response->assertDontSee('Variation', false);
+        $response->assertDontSee('Varian', false);
     }
 
     public function test_auth_pages_render_the_static_forms(): void
@@ -81,3 +81,4 @@ class CatalogPagesTest extends TestCase
         $response->assertSee('produk ditemukan', false);
     }
 }
+

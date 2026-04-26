@@ -40,7 +40,7 @@ class CartController extends Controller
             return response()->json($response);
         }
 
-        return redirect()->route('cart')->with('success', $response['flash_message']);
+        return redirect()->route('cart.index')->with('success', $response['flash_message']);
     }
 
     public function update(UpdateCartItemRequest $request, CartItem $cartItem): RedirectResponse|JsonResponse
@@ -55,7 +55,7 @@ class CartController extends Controller
             return response()->json($response);
         }
 
-        return redirect()->route('cart')->with('success', $response['flash_message']);
+        return redirect()->route('cart.index')->with('success', $response['flash_message']);
     }
 
     public function destroy(Request $request, CartItem $cartItem): RedirectResponse|JsonResponse
@@ -66,7 +66,7 @@ class CartController extends Controller
             return response()->json($response);
         }
 
-        return redirect()->route('cart')->with('success', $response['flash_message']);
+        return redirect()->route('cart.index')->with('success', $response['flash_message']);
     }
 
     public function updateSelection(UpdateCartSelectionRequest $request): JsonResponse
@@ -88,13 +88,13 @@ class CartController extends Controller
             return response()->json($response);
         }
 
-        return redirect()->route('cart')->with('success', $response['flash_message']);
+        return redirect()->route('cart.index')->with('success', $response['flash_message']);
     }
 
     public function count(Request $request): JsonResponse
     {
         return response()->json([
-            'count' => $this->cartService->count($request),
+            'count' => $this->cartService->countItems($request),
         ]);
     }
 

@@ -66,8 +66,8 @@ class CatalogSeeder extends Seeder
                     ['label' => 'Slot Sensor', 'value' => 'Ada', 'sort_order' => 4],
                 ],
                 'images' => [
-                    ['image_path' => 'theme/img/products/ceramic-brake-pad-set.jpg', 'alt_text' => 'Ceramic Brake Pad Set', 'sort_order' => 1],
-                    ['image_path' => 'theme/img/products/ventilated-brake-disc-rotor.jpg', 'alt_text' => 'Ceramic Brake Pad Set alternate', 'sort_order' => 2],
+                    ['image_path' => 'theme/img/produk/ceramic-brake-pad-set.jpg', 'alt_text' => 'Ceramic Brake Pad Set', 'sort_order' => 1],
+                    ['image_path' => 'theme/img/produk/ventilated-brake-disc-rotor.jpg', 'alt_text' => 'Ceramic Brake Pad Set alternate', 'sort_order' => 2],
                     ['image_path' => 'theme/img/marketing1.jpg', 'alt_text' => 'Ceramic Brake Pad Set workshop scene', 'sort_order' => 3],
                 ],
                 'variations' => [
@@ -98,8 +98,8 @@ class CatalogSeeder extends Seeder
                     ['label' => 'Lapisan', 'value' => 'Anti Korosi', 'sort_order' => 4],
                 ],
                 'images' => [
-                    ['image_path' => 'theme/img/products/ventilated-brake-disc-rotor.jpg', 'alt_text' => 'Ventilated Brake Disc Rotor', 'sort_order' => 1],
-                    ['image_path' => 'theme/img/products/ceramic-brake-pad-set.jpg', 'alt_text' => 'Ventilated Brake Disc Rotor alternate', 'sort_order' => 2],
+                    ['image_path' => 'theme/img/produk/ventilated-brake-disc-rotor.jpg', 'alt_text' => 'Ventilated Brake Disc Rotor', 'sort_order' => 1],
+                    ['image_path' => 'theme/img/produk/ceramic-brake-pad-set.jpg', 'alt_text' => 'Ventilated Brake Disc Rotor alternate', 'sort_order' => 2],
                     ['image_path' => 'theme/img/marketing1.jpg', 'alt_text' => 'Ventilated Brake Disc Rotor workshop scene', 'sort_order' => 3],
                 ],
                 'variations' => [
@@ -130,8 +130,8 @@ class CatalogSeeder extends Seeder
                     ['label' => 'Rumah Filter', 'value' => 'Canister Baja', 'sort_order' => 4],
                 ],
                 'images' => [
-                    ['image_path' => 'theme/img/products/spin-on-oil-filter.jpg', 'alt_text' => 'Spin-On Oil Filter', 'sort_order' => 1],
-                    ['image_path' => 'theme/img/products/panel-air-filter.jpg', 'alt_text' => 'Spin-On Oil Filter alternate', 'sort_order' => 2],
+                    ['image_path' => 'theme/img/produk/spin-on-oil-filter.jpg', 'alt_text' => 'Spin-On Oil Filter', 'sort_order' => 1],
+                    ['image_path' => 'theme/img/produk/panel-air-filter.jpg', 'alt_text' => 'Spin-On Oil Filter alternate', 'sort_order' => 2],
                     ['image_path' => 'theme/img/marketing1.jpg', 'alt_text' => 'Spin-On Oil Filter workshop scene', 'sort_order' => 3],
                 ],
                 'variations' => [
@@ -162,8 +162,8 @@ class CatalogSeeder extends Seeder
                     ['label' => 'Lebar', 'value' => '198 mm', 'sort_order' => 4],
                 ],
                 'images' => [
-                    ['image_path' => 'theme/img/products/panel-air-filter.jpg', 'alt_text' => 'Panel Air Filter', 'sort_order' => 1],
-                    ['image_path' => 'theme/img/products/spin-on-oil-filter.jpg', 'alt_text' => 'Panel Air Filter alternate', 'sort_order' => 2],
+                    ['image_path' => 'theme/img/produk/panel-air-filter.jpg', 'alt_text' => 'Panel Air Filter', 'sort_order' => 1],
+                    ['image_path' => 'theme/img/produk/spin-on-oil-filter.jpg', 'alt_text' => 'Panel Air Filter alternate', 'sort_order' => 2],
                     ['image_path' => 'theme/img/marketing1.jpg', 'alt_text' => 'Panel Air Filter workshop scene', 'sort_order' => 3],
                 ],
                 'variations' => [
@@ -194,8 +194,8 @@ class CatalogSeeder extends Seeder
                     ['label' => 'Rentang Panas', 'value' => '6', 'sort_order' => 4],
                 ],
                 'images' => [
-                    ['image_path' => 'theme/img/products/iridium-spark-plug.jpg', 'alt_text' => 'Iridium Spark Plug', 'sort_order' => 1],
-                    ['image_path' => 'theme/img/products/battery-terminal-clamp.jpg', 'alt_text' => 'Iridium Spark Plug alternate', 'sort_order' => 2],
+                    ['image_path' => 'theme/img/produk/iridium-spark-plug.jpg', 'alt_text' => 'Iridium Spark Plug', 'sort_order' => 1],
+                    ['image_path' => 'theme/img/produk/battery-terminal-clamp.jpg', 'alt_text' => 'Iridium Spark Plug alternate', 'sort_order' => 2],
                     ['image_path' => 'theme/img/marketing1.jpg', 'alt_text' => 'Iridium Spark Plug workshop scene', 'sort_order' => 3],
                 ],
                 'variations' => [
@@ -226,8 +226,8 @@ class CatalogSeeder extends Seeder
                     ['label' => 'Finishing', 'value' => 'Lapisan Anti Karat', 'sort_order' => 4],
                 ],
                 'images' => [
-                    ['image_path' => 'theme/img/products/battery-terminal-clamp.jpg', 'alt_text' => 'Battery Terminal Clamp', 'sort_order' => 1],
-                    ['image_path' => 'theme/img/products/iridium-spark-plug.jpg', 'alt_text' => 'Battery Terminal Clamp alternate', 'sort_order' => 2],
+                    ['image_path' => 'theme/img/produk/battery-terminal-clamp.jpg', 'alt_text' => 'Battery Terminal Clamp', 'sort_order' => 1],
+                    ['image_path' => 'theme/img/produk/iridium-spark-plug.jpg', 'alt_text' => 'Battery Terminal Clamp alternate', 'sort_order' => 2],
                     ['image_path' => 'theme/img/marketing1.jpg', 'alt_text' => 'Battery Terminal Clamp workshop scene', 'sort_order' => 3],
                 ],
                 'variations' => [
@@ -323,3 +323,4 @@ class CatalogSeeder extends Seeder
         }
     }
 }
+

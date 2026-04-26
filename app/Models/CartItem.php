@@ -35,7 +35,7 @@ class CartItem extends Model
                 $variation = $item->relationLoaded('item') ? $item->item : $item->item()->first();
                 if ($variation) {
                     $product = $variation->relationLoaded('product') ? $variation->product : $variation->product()->first();
-                    $unitPrice = (float) ($product?->price ?? $product?->harga ?? $variation->price_for_cart);
+                    $unitPrice = (float) ($product?->harga ?? $product?->price ?? $variation->price_for_cart);
                     $item->line_item_total = round($item->quantity * $unitPrice, 2);
                 }
             }
@@ -82,7 +82,7 @@ class CartItem extends Model
     public function getStockIssueMessageAttribute(): ?string
     {
         $variation = $this->relationLoaded('item') ? $this->item : $this->item()->with('product')->first();
-        $productTitle = $variation?->product?->title ?: 'produk ini';
+        $productTitle = $variation?->product?->judul ?: 'produk ini';
         $availableStock = $this->available_stock;
 
         if ($availableStock <= 0) {
@@ -101,3 +101,4 @@ class CartItem extends Model
         return $this->stock_issue_message !== null;
     }
 }
+

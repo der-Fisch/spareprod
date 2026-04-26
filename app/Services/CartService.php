@@ -12,8 +12,8 @@ class CartService
 {
     public function resolveCart(Request $request): Cart
     {
-        $cartId = $request->session()->get('cart_id');
-        $cart = $cartId ? Cart::query()->find($cartId) : null;
+        $idCart = $request->session()->get('cart_id');
+        $cart = $idCart ? Cart::query()->find($idCart) : null;
 
         if (! $cart && $request->user()) {
             $cart = Cart::query()
@@ -25,7 +25,7 @@ class CartService
         }
 
         if (! $cart) {
-            $cart = Cart::query()->create(['tax_percentage' => 0.07500]);
+            $cart = Cart::query()->create(['persentasi_pajak' => 0.07500]);
         }
 
         if ($request->user() && $cart->user_id !== $request->user()->id) {
@@ -38,7 +38,7 @@ class CartService
         return $cart;
     }
 
-    public function ensureCartItemBelongsToSessionCart(Request $request, CartItem $cartItem): Cart
+    public function ensureSessionCartOwnsItem(Request $request, CartItem $cartItem): Cart
     {
         $cart = $this->resolveCart($request);
 
@@ -73,8 +73,8 @@ class CartService
             request: $request,
             cart: $cart,
             flashMessage: $itemAdded
-                ? 'Produk berhasil ditambahkan ke keranjang.'
-                : 'Jumlah produk di keranjang berhasil diperbarui.',
+                ? 'Product berhasil ditambahkan ke cart.'
+                : 'Jumlah product di cart berhasil diperbarui.',
             cartItem: $cartItem,
             itemAdded: $itemAdded
         );
@@ -82,7 +82,7 @@ class CartService
 
     public function updateItemQuantity(Request $request, CartItem $cartItem, int $quantity): array
     {
-        $cart = $this->ensureCartItemBelongsToSessionCart($request, $cartItem);
+        $cart = $this->ensureSessionCartOwnsItem($request, $cartItem);
 
         if ($quantity < 1) {
             return $this->removeItem($request, $cartItem, $cart);
@@ -96,34 +96,34 @@ class CartService
         return $this->buildMutationResponse(
             request: $request,
             cart: $cart,
-            flashMessage: 'Jumlah produk di keranjang berhasil diperbarui.',
+            flashMessage: 'Jumlah product di cart berhasil diperbarui.',
             cartItem: $cartItem
         );
     }
 
     public function removeItem(Request $request, CartItem $cartItem, ?Cart $cart = null): array
     {
-        $cart ??= $this->ensureCartItemBelongsToSessionCart($request, $cartItem);
-        $removedItemId = $cartItem->id;
+        $cart ??= $this->ensureSessionCartOwnsItem($request, $cartItem);
+        $deletedItemId = $cartItem->id;
         $cartItem->delete();
 
         return $this->buildMutationResponse(
             request: $request,
             cart: $cart,
-            flashMessage: 'Produk berhasil dihapus dari keranjang.',
+            flashMessage: 'Product berhasil dihapus dari cart.',
             deleted: true,
-            removedItemId: $removedItemId
+            deletedItemId: $deletedItemId
         );
     }
 
     public function updateSelection(Request $request, array $cartItemIds, bool $selected): array
     {
         $cart = $this->resolveCart($request);
-        $items = $cart->cartItems()->whereIn('id', $cartItemIds)->get();
+        $cartItems = $cart->cartItems()->whereIn('id', $cartItemIds)->get();
 
-        foreach ($items as $item) {
-            $item->is_selected = $selected;
-            $item->save();
+        foreach ($cartItems as $cartItem) {
+            $cartItem->is_selected = $selected;
+            $cartItem->save();
         }
 
         return $this->selectionSummary($request, $cart);
@@ -134,16 +134,16 @@ class CartService
         $cart = $this->resolveCart($request);
         $selectedItems = $cart->selectedCartItems()->get();
 
-        foreach ($selectedItems as $item) {
-            $item->delete();
+        foreach ($selectedItems as $cartItem) {
+            $cartItem->delete();
         }
 
         return $this->selectionSummary($request, $cart) + [
-            'flash_message' => 'Produk terpilih berhasil dihapus dari keranjang.',
+            'flash_message' => 'Product terpilih berhasil dihapus dari cart.',
         ];
     }
 
-    public function count(Request $request): int
+    public function countItems(Request $request): int
     {
         $cartId = $request->session()->get('cart_id');
         $count = 0;
@@ -160,7 +160,7 @@ class CartService
     public function selectionSummary(Request $request, Cart $cart): array
     {
         $cart->refresh()->load('cartItems.item.product.images');
-        $this->storeCartCount($request, $cart);
+        $this->storeCartCountInSession($request, $cart);
 
         return [
             'total_items' => $cart->items()->count(),
@@ -194,19 +194,19 @@ class CartService
 
     public function stockIssueSummary(Collection $cartItems): ?string
     {
-        $issues = $this->itemsWithStockIssues($cartItems);
+        $stockIssues = $this->itemsWithStockIssues($cartItems);
 
-        if ($issues->isEmpty()) {
+        if ($stockIssues->isEmpty()) {
             return null;
         }
 
-        $primaryMessage = $issues->first()->stock_issue_message;
+        $primaryMessage = $stockIssues->first()->stock_issue_message;
 
-        if ($issues->count() === 1) {
+        if ($stockIssues->count() === 1) {
             return $primaryMessage;
         }
 
-        return $primaryMessage . ' Periksa juga item lain di keranjang Anda yang mungkin perlu menunggu restock.';
+        return $primaryMessage . ' Periksa juga item lain di cart Anda yang mungkin perlu menunggu restock.';
     }
 
     protected function buildMutationResponse(
@@ -216,14 +216,14 @@ class CartService
         ?CartItem $cartItem = null,
         bool $itemAdded = false,
         bool $deleted = false,
-        ?int $removedItemId = null,
+        ?int $deletedItemId = null,
     ): array {
         $cart->refresh()->load('cartItems.item.product.images');
-        $this->storeCartCount($request, $cart);
+        $this->storeCartCountInSession($request, $cart);
 
         return [
             'deleted' => $deleted,
-            'removed_item_id' => $removedItemId,
+            'removed_item_id' => $deletedItemId,
             'item_added' => $itemAdded,
             'line_total' => $cartItem?->line_item_total,
             'subtotal' => $cart->subtotal,
@@ -239,7 +239,7 @@ class CartService
         ];
     }
 
-    protected function storeCartCount(Request $request, Cart $cart): void
+    protected function storeCartCountInSession(Request $request, Cart $cart): void
     {
         $request->session()->put('cart_item_count', $cart->items()->count());
     }

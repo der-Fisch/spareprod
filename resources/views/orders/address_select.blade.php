@@ -33,8 +33,8 @@
                     <span class="table-chip table-chip-success">Utama</span>
                   @endif
                 </span>
-                <span>{{ $address->recipient_name }}</span>
-                <span>{{ $address->phone_number }}</span>
+                <span>{{ $address->nama_penerima }}</span>
+                <span>{{ $address->nomor_whatsapp }}</span>
                 <span>{{ $address->address }}</span>
               </span>
             </label>

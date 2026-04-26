@@ -6,34 +6,34 @@ use App\Models\User;
 use App\Models\UserAddress;
 use App\Models\UserCheckout;
 
-class AccountSettingsService
+class AccountSettingService
 {
     public function resolveCheckoutProfile(User $user): UserCheckout
     {
-        $checkout = UserCheckout::query()->where('user_id', $user->id)->first();
+        $checkoutProfile = UserCheckout::query()->where('user_id', $user->id)->first();
 
-        if (! $checkout) {
-            $checkout = UserCheckout::query()->where('email', $user->email)->first();
+        if (! $checkoutProfile) {
+            $checkoutProfile = UserCheckout::query()->where('email', $user->email)->first();
         }
 
-        if (! $checkout) {
-            $checkout = UserCheckout::query()->create([
+        if (! $checkoutProfile) {
+            $checkoutProfile = UserCheckout::query()->create([
                 'user_id' => $user->id,
                 'email' => $user->email,
             ]);
         }
 
-        if ($checkout->user_id !== $user->id) {
-            $checkout->user_id = $user->id;
+        if ($checkoutProfile->user_id !== $user->id) {
+            $checkoutProfile->user_id = $user->id;
         }
 
-        if (! $checkout->email) {
-            $checkout->email = $user->email;
+        if (! $checkoutProfile->email) {
+            $checkoutProfile->email = $user->email;
         }
 
-        $checkout->save();
+        $checkoutProfile->save();
 
-        return $checkout;
+        return $checkoutProfile;
     }
 
     public function syncCheckoutProfileEmail(UserCheckout $checkout, User $user): void
@@ -58,18 +58,18 @@ class AccountSettingsService
         return in_array($tab, $allowedTabs, true) ? $tab : 'biodata';
     }
 
-    public function normalizeAddressPayload(array $validated, UserCheckout $checkout): array
+    public function normalizeAddressPayload(array $validatedData, UserCheckout $checkout): array
     {
         return [
-            'label' => $validated['label'] ?? null,
-            'recipient_name' => $validated['recipient_name'],
-            'phone_number' => $validated['phone_number'],
-            'type' => 'shipping',
-            'street' => $validated['street'],
-            'city' => $validated['city'],
-            'state' => $validated['state'],
-            'zipcode' => $validated['zipcode'],
-            'is_default' => ! $checkout->addresses()->exists() || ! empty($validated['is_default']),
+            'label' => $validatedData['label'] ?? null,
+            'nama_penerima' => $validatedData['nama_penerima'],
+            'nomor_whatsapp' => $validatedData['nomor_whatsapp'],
+            'tipe' => 'shipping',
+            'nama_jalan' => $validatedData['nama_jalan'],
+            'nama_kota' => $validatedData['nama_kota'],
+            'negara' => $validatedData['negara'],
+            'kode_pos' => $validatedData['kode_pos'],
+            'is_default' => ! $checkout->addresses()->exists() || ! empty($validatedData['is_default']),
         ];
     }
 

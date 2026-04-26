@@ -23,7 +23,7 @@
           <thead>
             <tr>
               <th>Order</th>
-              <th>Produk</th>
+              <th>Product</th>
               <th>Status</th>
               <th>Items</th>
               <th>Total</th>
@@ -41,7 +41,7 @@
                   @forelse ($object->displayItemSummaries() as $itemSummary)
                     <div>{{ $itemSummary }}</div>
                   @empty
-                    <span class="text-muted">Produk tidak tersedia</span>
+                    <span class="text-muted">Product tidak tersedia</span>
                   @endforelse
                 </td>
                 <td><span class="table-chip">{{ $object->status_label }}</span></td>
@@ -65,3 +65,4 @@
     @endforeach
   @endif
 @endsection
+

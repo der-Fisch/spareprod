@@ -96,13 +96,13 @@
               <span class="eyebrow">Barang Dipilih</span>
               <h2>Item yang akan di-checkout</h2>
             </div>
-            <a href="{{ route('cart') }}" class="section-link">Kembali ke keranjang</a>
+            <a href="{{ route('cart.index') }}" class="section-link">Back to Cart</a>
           </div>
 
           <div class="checkout-items">
             @foreach ($checkoutItems as $item)
               @php
-                $productTitle = $item->product_title ?? $item->item?->product?->title ?? 'Produk';
+                $productTitle = $item->product_title ?? $item->item?->product?->judul ?? 'Product';
                 $productImage = $item->product_image_url ?? $item->item?->product?->image_url ?? asset('theme/img/marketing1.jpg');
               @endphp
               <article class="checkout-item-card">

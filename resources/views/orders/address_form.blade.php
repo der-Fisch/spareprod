@@ -6,7 +6,7 @@
   <section class="page-hero page-hero-compact">
     <span class="eyebrow">Alamat Pengiriman</span>
     <h1>Tambahkan alamat baru untuk checkout.</h1>
-    <p>Isi label alamat, nama penerima, nomor HP, dan detail alamat agar checkout lebih mudah dipahami user.</p>
+    <p>Isi label alamat, nama penerima, nomor WhatsApp, dan detail alamat agar checkout lebih cepat dan akurat.</p>
   </section>
 
   <div class="address-form-shell">
@@ -29,39 +29,39 @@
         </div>
 
         <div class="form-group">
-          <label for="recipient_name">Nama penerima</label>
-          <input id="recipient_name" type="text" name="recipient_name" class="form-control" value="{{ old('recipient_name') }}" placeholder="Nama penerima paket" required>
-          @error('recipient_name')<p class="text-danger">{{ $message }}</p>@enderror
+          <label for="nama_penerima">Nama penerima</label>
+          <input id="nama_penerima" type="text" name="nama_penerima" class="form-control" value="{{ old('nama_penerima') }}" placeholder="Nama penerima paket" required>
+          @error('nama_penerima')<p class="text-danger">{{ $message }}</p>@enderror
         </div>
 
         <div class="form-group">
-          <label for="phone_number">Nomor HP</label>
-          <input id="phone_number" type="text" name="phone_number" class="form-control" value="{{ old('phone_number') }}" placeholder="Contoh: 081234567890" required>
-          @error('phone_number')<p class="text-danger">{{ $message }}</p>@enderror
+          <label for="nomor_whatsapp">Nomor WhatsApp</label>
+          <input id="nomor_whatsapp" type="text" name="nomor_whatsapp" class="form-control" value="{{ old('nomor_whatsapp') }}" placeholder="Contoh: 081234567890" required>
+          @error('nomor_whatsapp')<p class="text-danger">{{ $message }}</p>@enderror
         </div>
 
         <div class="form-group">
-          <label for="zipcode">Kode pos</label>
-          <input id="zipcode" type="text" name="zipcode" class="form-control" value="{{ old('zipcode') }}" placeholder="Contoh: 17113" required>
-          @error('zipcode')<p class="text-danger">{{ $message }}</p>@enderror
+          <label for="kode_pos">Kode pos</label>
+          <input id="kode_pos" type="text" name="kode_pos" class="form-control" value="{{ old('kode_pos') }}" placeholder="Contoh: 17113" required>
+          @error('kode_pos')<p class="text-danger">{{ $message }}</p>@enderror
         </div>
 
         <div class="form-group form-group-span-2">
-          <label for="street">Jalan / detail alamat</label>
-          <input id="street" type="text" name="street" class="form-control" value="{{ old('street') }}" placeholder="Contoh: Jl. Melati No. 12, RT 03/RW 05" required>
-          @error('street')<p class="text-danger">{{ $message }}</p>@enderror
+          <label for="nama_jalan">Jalan / detail alamat</label>
+          <input id="nama_jalan" type="text" name="nama_jalan" class="form-control" value="{{ old('nama_jalan') }}" placeholder="Contoh: Jl. Melati No. 12, RT 03/RW 05" required>
+          @error('nama_jalan')<p class="text-danger">{{ $message }}</p>@enderror
         </div>
 
         <div class="form-group">
-          <label for="city">Kota / kabupaten</label>
-          <input id="city" type="text" name="city" class="form-control" value="{{ old('city') }}" placeholder="Contoh: Kudus" required>
-          @error('city')<p class="text-danger">{{ $message }}</p>@enderror
+          <label for="nama_kota">Kota / kabupaten</label>
+          <input id="nama_kota" type="text" name="nama_kota" class="form-control" value="{{ old('nama_kota') }}" placeholder="Contoh: Kudus" required>
+          @error('nama_kota')<p class="text-danger">{{ $message }}</p>@enderror
         </div>
 
         <div class="form-group">
-          <label for="state">Provinsi</label>
-          <input id="state" type="text" name="state" class="form-control" value="{{ old('state') }}" placeholder="Contoh: Jawa Tengah" required>
-          @error('state')<p class="text-danger">{{ $message }}</p>@enderror
+          <label for="negara">Negara</label>
+          <input id="negara" type="text" name="negara" class="form-control" value="{{ old('negara') }}" placeholder="Contoh: Indonesia" required>
+          @error('negara')<p class="text-danger">{{ $message }}</p>@enderror
         </div>
 
         <div class="form-group form-group-span-2">

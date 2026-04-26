@@ -43,7 +43,7 @@
       },
       success: function (response) {
         window.AppUi.updateCartItemCount();
-        window.AppUi.showCartSuccessAlert(response.flash_message || "Produk berhasil ditambahkan ke keranjang.");
+        window.AppUi.showCartSuccessAlert(response.flash_message || "Product berhasil ditambahkan ke cart.");
       },
       error: function () {
         form.off("submit");

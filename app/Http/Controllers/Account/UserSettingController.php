@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AccountProfile;
 use App\Models\User;
 use App\Models\UserCheckout;
-use App\Services\AccountSettingsService;
+use App\Services\AccountSettingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,10 +14,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
-class AccountSettingsController extends Controller
+class UserSettingController extends Controller
 {
     public function __construct(
-        protected AccountSettingsService $settingsService,
+        protected AccountSettingService $accountSettingService,
     ) {
     }
 
@@ -32,8 +32,8 @@ class AccountSettingsController extends Controller
             ]);
         }
 
-        $checkoutProfile = $this->settingsService->resolveCheckoutProfile($user);
-        $activeTab = $this->settingsService->resolveActiveTab(
+        $checkoutProfile = $this->accountSettingService->resolveCheckoutProfile($user);
+        $activeTab = $this->accountSettingService->resolveActiveTab(
             (string) ($request->query('tab') ?: session('account_settings_tab', 'biodata'))
         );
 
@@ -56,8 +56,8 @@ class AccountSettingsController extends Controller
             return $this->updateAdminSettings($request, $user, $profile, $action);
         }
 
-        $activeTab = $this->settingsService->resolveActiveTab((string) $request->input('active_tab', 'biodata'));
-        $checkoutProfile = $this->settingsService->resolveCheckoutProfile($user);
+        $activeTab = $this->accountSettingService->resolveActiveTab((string) $request->input('active_tab', 'biodata'));
+        $checkoutProfile = $this->accountSettingService->resolveCheckoutProfile($user);
 
         return match ($action) {
             'profile' => $this->updateCustomerProfile($request, $user, $profile, $checkoutProfile, $activeTab),
@@ -80,12 +80,11 @@ class AccountSettingsController extends Controller
         $validator = Validator::make($request->all(), [
             'username' => ['required', 'string', 'max:150', 'unique:users,username,' . $user->id],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'first_name' => ['nullable', 'string', 'max:150'],
-            'last_name' => ['nullable', 'string', 'max:150'],
-            'phone_number' => ['nullable', 'string', 'max:32'],
-            'whatsapp_number' => ['nullable', 'string', 'max:32'],
-            'birth_date' => ['nullable', 'date'],
-            'gender' => ['nullable', Rule::in(['male', 'female', 'other'])],
+            'nama_depan' => ['nullable', 'string', 'max:150'],
+            'nama_belakang' => ['nullable', 'string', 'max:150'],
+            'nomor_whatsapp' => ['nullable', 'string', 'max:32'],
+            'tanggal_lahir' => ['nullable', 'date'],
+            'jenis_kelamin' => ['nullable', Rule::in(['male', 'female', 'other'])],
         ], [
             'username.unique' => 'Username sudah digunakan.',
             'email.unique' => 'Email sudah digunakan.',
@@ -103,18 +102,17 @@ class AccountSettingsController extends Controller
         $user->update([
             'username' => $validated['username'],
             'email' => $validated['email'],
-            'first_name' => $validated['first_name'] ?? null,
-            'last_name' => $validated['last_name'] ?? null,
+            'nama_depan' => $validated['nama_depan'] ?? null,
+            'nama_belakang' => $validated['nama_belakang'] ?? null,
         ]);
 
         $profile->update([
-            'phone_number' => $validated['phone_number'] ?? null,
-            'whatsapp_number' => $validated['whatsapp_number'] ?? null,
-            'birth_date' => $validated['birth_date'] ?? null,
-            'gender' => $validated['gender'] ?? null,
+            'nomor_whatsapp' => $validated['nomor_whatsapp'] ?? null,
+            'tanggal_lahir' => $validated['tanggal_lahir'] ?? null,
+            'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
         ]);
 
-        $this->settingsService->syncCheckoutProfileEmail($checkoutProfile, $user);
+        $this->accountSettingService->syncCheckoutProfileEmail($checkoutProfile, $user);
 
         return $this->redirectToCustomerSettings($activeTab)
             ->with('success', 'Biodata akun berhasil diperbarui.');
@@ -149,9 +147,9 @@ class AccountSettingsController extends Controller
                 ->with('active_modal', 'address-create-modal');
         }
 
-        $payload = $this->settingsService->normalizeAddressPayload($validator->validated(), $checkoutProfile);
+        $payload = $this->accountSettingService->normalizeAddressPayload($validator->validated(), $checkoutProfile);
         $address = $checkoutProfile->addresses()->create($payload);
-        $this->settingsService->applyDefaultAddress($checkoutProfile, $address, $payload['is_default']);
+        $this->accountSettingService->applyDefaultAddress($checkoutProfile, $address, $payload['is_default']);
 
         return $this->redirectToCustomerSettings($activeTab)
             ->with('success', 'Alamat berhasil ditambahkan.');
@@ -170,9 +168,9 @@ class AccountSettingsController extends Controller
                 ->with('active_modal', 'address-edit-modal-' . $address->id);
         }
 
-        $payload = $this->settingsService->normalizeAddressPayload($validator->validated(), $checkoutProfile);
+        $payload = $this->accountSettingService->normalizeAddressPayload($validator->validated(), $checkoutProfile);
         $address->update($payload);
-        $this->settingsService->applyDefaultAddress($checkoutProfile, $address, $payload['is_default']);
+        $this->accountSettingService->applyDefaultAddress($checkoutProfile, $address, $payload['is_default']);
 
         return $this->redirectToCustomerSettings($activeTab)
             ->with('success', 'Alamat berhasil diperbarui.');
@@ -198,7 +196,7 @@ class AccountSettingsController extends Controller
     protected function setDefaultAddress(Request $request, UserCheckout $checkoutProfile, string $activeTab): RedirectResponse
     {
         $address = $checkoutProfile->addresses()->whereKey($request->input('address_id'))->firstOrFail();
-        $this->settingsService->applyDefaultAddress($checkoutProfile, $address, true);
+        $this->accountSettingService->applyDefaultAddress($checkoutProfile, $address, true);
 
         return $this->redirectToCustomerSettings($activeTab)
             ->with('success', 'Alamat utama berhasil diperbarui.');
@@ -210,6 +208,7 @@ class AccountSettingsController extends Controller
             $validator = Validator::make($request->all(), [
                 'username' => ['required', 'string', 'max:150', 'unique:users,username,' . $user->id],
                 'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+                'nomor_whatsapp' => ['nullable', 'string', 'max:32'],
                 'whatsapp_number' => ['nullable', 'string', 'max:32'],
             ], [
                 'username.unique' => 'Username sudah digunakan.',
@@ -230,7 +229,7 @@ class AccountSettingsController extends Controller
             ]);
 
             $profile->update([
-                'whatsapp_number' => $validated['whatsapp_number'] ?? null,
+                'nomor_whatsapp' => $validated['nomor_whatsapp'] ?? $validated['whatsapp_number'] ?? null,
             ]);
 
             return redirect()->route('account.settings')
@@ -279,12 +278,12 @@ class AccountSettingsController extends Controller
     {
         return Validator::make($request->all(), [
             'label' => ['nullable', 'string', 'max:80'],
-            'recipient_name' => ['required', 'string', 'max:120'],
-            'phone_number' => ['required', 'string', 'max:32'],
-            'street' => ['required', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:255'],
-            'state' => ['required', 'string', 'max:255'],
-            'zipcode' => ['required', 'string', 'max:50'],
+            'nama_penerima' => ['required', 'string', 'max:120'],
+            'nomor_whatsapp' => ['required', 'string', 'max:32'],
+            'nama_jalan' => ['required', 'string', 'max:255'],
+            'nama_kota' => ['required', 'string', 'max:255'],
+            'negara' => ['required', 'string', 'max:255'],
+            'kode_pos' => ['required', 'string', 'max:50'],
             'is_default' => ['nullable', 'boolean'],
         ]);
     }
